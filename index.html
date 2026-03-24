@@ -129,7 +129,7 @@
         <div style="font-weight:700; font-size:22px; letter-spacing:-1px;">Hate Me</div>
         <button onclick="toggleSettings(true)" style="background:none; border:none; color:var(--t3); cursor:pointer;"><i data-lucide="settings"></i></button>
     </div>
-    <div class="search-wrapper"><input type="text" class="search-input" placeholder="Поиск по юзерам..."></div>
+    <div class="search-wrapper"><input type="text" class="search-input" id="global-search" placeholder="Поиск по юзерам (Enter)..."></div>
     <div style="flex:1; overflow-y:auto;" id="chatList"></div>
     <div class="prof-box" onclick="toggleSettings(true)">
         <img src="" id="ui-av" class="my-av" style="display:none">
@@ -154,15 +154,14 @@
         <div class="input-group"><label>О себе</label><textarea id="set-bio" rows="3"></textarea></div>
         <button class="btn-main" onclick="saveData()">Сохранить</button>
     </div>
-    <div class="anim-fade">Выберите чат, чтобы начать общение</div>
+    <div class="anim-fade" id="chat-placeholder">Выберите чат, чтобы начать общение</div>
   </main>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  // Твой конфиг из Firebase Console
   const firebaseConfig = {
     apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
     authDomain: "hate-24365.firebaseapp.com",
@@ -176,6 +175,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   let tempGeneratedCode = "";
+  let currentUserEmail = "";
 
   lucide.createIcons();
 
@@ -191,7 +191,6 @@
     document.getElementById('step-reg-'+n).classList.add('active');
   };
 
-  // ОТПРАВКА КОДА ЧЕРЕЗ ТВОЙ GMAIL
   window.sendCode = function() {
     const email = document.getElementById('r-email').value;
     if(!email) return alert("Введите почту!");
@@ -201,7 +200,7 @@
     Email.send({
         Host : "smtp.gmail.com",
         Username : "hate.messenger.help@gmail.com",
-        Password : "fyzh eoay oxfq evhy", // Пароль приложения
+        Password : "fyzh eoay oxfq evhy",
         To : email,
         From : "hate.messenger.help@gmail.com",
         Subject : "Hate Me: Код подтверждения",
@@ -210,7 +209,7 @@
         if(msg === "OK") {
             alert("Код отправлен на " + email);
             nextStep(2);
-        } else alert("Ошибка: " + msg);
+        } else alert("Ошибка почты: " + msg);
     });
   };
 
@@ -220,7 +219,6 @@
     } else alert("Неверный код!");
   };
 
-  // СОЗДАНИЕ АККАУНТА В FIRESTORE
   window.registerUser = async () => {
     const email = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
@@ -234,18 +232,47 @@
             bio: "",
             av: ""
         });
+        currentUserEmail = email;
         showApp(email.split('@')[0], hateID);
-    } catch (e) { alert("Ошибка базы: " + e.message); }
+    } catch (e) { 
+        console.error(e);
+        alert("Ошибка регистрации: " + e.message + ". Проверьте правила Firestore!"); 
+    }
   };
 
   window.loginUser = async () => {
     const email = document.getElementById('l-email').value;
     const pass = document.getElementById('l-pass').value;
-    const snap = await getDoc(doc(db, "users", email));
-    
-    if(snap.exists() && snap.data().password === pass) {
-        showApp(snap.data().nick, snap.data().id, snap.data().av, snap.data().bio);
-    } else alert("Неверные данные!");
+    try {
+        const snap = await getDoc(doc(db, "users", email));
+        if(snap.exists() && snap.data().password === pass) {
+            currentUserEmail = email;
+            showApp(snap.data().nick, snap.data().id, snap.data().av, snap.data().bio);
+        } else alert("Неверные данные!");
+    } catch(e) { alert("Ошибка входа: " + e.message); }
+  };
+
+  window.saveData = async () => {
+    const newNick = document.getElementById('set-user').value;
+    const newBio = document.getElementById('set-bio').value;
+    const avImg = document.getElementById('set-av-pre').src;
+
+    try {
+        await setDoc(doc(db, "users", currentUserEmail), {
+            nick: newNick,
+            bio: newBio,
+            av: avImg.startsWith('data') ? avImg : ""
+        }, { merge: true });
+        
+        document.getElementById('ui-nick').innerText = "@" + newNick;
+        if(avImg.startsWith('data')) {
+            document.getElementById('ui-av').src = avImg;
+            document.getElementById('ui-av').style.display = 'block';
+            document.getElementById('av-stub').style.display = 'none';
+        }
+        toggleSettings(false);
+        alert("Профиль обновлен!");
+    } catch(e) { alert("Ошибка сохранения: " + e.message); }
   };
 
   function showApp(nick, id, av = "", bio = "") {
@@ -257,6 +284,7 @@
         document.getElementById('ui-av').src = av;
         document.getElementById('ui-av').style.display = 'block';
         document.getElementById('av-stub').style.display = 'none';
+        document.getElementById('set-av-pre').src = av;
     }
     const auth = document.getElementById('auth-screen');
     const appS = document.getElementById('app-screen');
@@ -270,11 +298,43 @@
   }
 
   window.toggleSettings = (s) => document.getElementById('settings-modal').classList.toggle('active', s);
+  
   window.previewAv = (input) => {
     const r = new FileReader();
     r.onload = (e) => document.getElementById('set-av-pre').src = e.target.result;
     r.readAsDataURL(input.files[0]);
   };
+
+  // ПОИСК (Enter в поле поиска)
+  document.getElementById('global-search').addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') {
+        const val = e.target.value;
+        const chatList = document.getElementById('chatList');
+        chatList.innerHTML = "<div style='padding:20px; color:gray;'>Поиск...</div>";
+        
+        try {
+            const q = query(collection(db, "users"), where("id", "==", parseInt(val)));
+            const snap = await getDocs(q);
+            chatList.innerHTML = "";
+            if(snap.empty) chatList.innerHTML = "<div style='padding:20px; color:gray;'>Никого не нашли</div>";
+            snap.forEach(doc => {
+                const u = doc.data();
+                const div = document.createElement('div');
+                div.className = 'prof-box anim-fade';
+                div.innerHTML = `
+                    <div style="width:40px; height:40px; border-radius:12px; background:#222; display:flex; align-items:center; justify-content:center;">
+                        ${u.av ? `<img src="${u.av}" style="width:100%;height:100%;border-radius:12px;">` : `<i data-lucide="user"></i>`}
+                    </div>
+                    <div>
+                        <div style="font-weight:700; font-size:14px;">@${u.nick}</div>
+                        <div style="font-size:10px; color:var(--t3);">Hate ID: ${u.id}</div>
+                    </div>`;
+                chatList.appendChild(div);
+            });
+            lucide.createIcons();
+        } catch(err) { alert("Ошибка поиска: " + err.message); }
+    }
+  });
 </script>
 </body>
 </html>
