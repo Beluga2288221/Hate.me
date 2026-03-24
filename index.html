@@ -201,22 +201,22 @@
     
     tempGeneratedCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // МГНОВЕННО переходим к коду
+    // МГНОВЕННО переходим к этапу ввода кода
     nextStep(2);
     
-    // ПЕЧАТАЕМ КОД В КОНСОЛЬ (для тебя)
+    // ПЕЧАТАЕМ КОД В КОНСОЛЬ ДЛЯ ТЕСТОВ
     console.log("%c [HATE ME DEBUG] Твой код: " + tempGeneratedCode, "background: #000; color: #fff; font-size: 20px; padding: 10px;");
 
-    // Отправка в фоне
+    // Отправка письма
     if (typeof Email !== 'undefined') {
         Email.send({
             Host : "smtp.gmail.com",
             Username : "hate.messenger.help@gmail.com",
-            Password : "fyzh eoay oxfq evhy",
+            Password : "wzpv gwif zspq qzyo", // Твой обновленный пароль приложения
             To : email,
             From : "hate.messenger.help@gmail.com",
-            Subject : "Hate Me: Код подтверждения",
-            Body : "Твой секретный код регистрации: " + tempGeneratedCode
+            Subject : "Hate Me Code",
+            Body : "Code: " + tempGeneratedCode
         }).then(msg => {
             if(msg !== "OK") console.error("Ошибка SMTP:", msg);
         });
