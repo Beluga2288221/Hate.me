@@ -163,7 +163,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  // Твой конфиг
   const firebaseConfig = {
     apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
     authDomain: "hate-24365.firebaseapp.com",
@@ -181,7 +180,6 @@
 
   lucide.createIcons();
 
-  // --- ГЛОБАЛЬНЫЕ ФУНКЦИИ ---
   window.switchAuth = (t) => {
     document.getElementById('tab-login').classList.toggle('active', t==='login');
     document.getElementById('tab-reg').classList.toggle('active', t==='reg');
@@ -195,17 +193,19 @@
     if(step) step.classList.add('active');
   };
 
-  // ПОЛУЧИТЬ КОД
+  // Мгновенный переход к коду
   window.sendCode = function() {
     const email = document.getElementById('r-email').value;
-    const btn = document.getElementById('btn-get-code');
     if(!email || !email.includes('@')) return alert("Введите корректный Email!");
     
-    btn.disabled = true;
-    btn.innerText = "Отправка...";
-    
+    // Генерируем код
     tempGeneratedCode = Math.floor(100000 + Math.random() * 900000).toString();
 
+    // СРАЗУ переключаем на ввод кода, не дожидаясь ответа сервера
+    nextStep(2);
+    console.log("Код для теста:", tempGeneratedCode); // На случай если почта не придет
+
+    // Запускаем отправку в фоне
     Email.send({
         Host : "smtp.gmail.com",
         Username : "hate.messenger.help@gmail.com",
@@ -215,18 +215,10 @@
         Subject : "Hate Me: Код подтверждения",
         Body : "Твой секретный код регистрации: " + tempGeneratedCode
     }).then(msg => {
-        if(msg === "OK") {
-            alert("Код отправлен на " + email);
-            nextStep(2);
-        } else {
-            alert("Ошибка почты: " + msg);
-            btn.disabled = false;
-            btn.innerText = "Получить код";
-        }
+        if(msg !== "OK") console.error("Ошибка SMTP:", msg);
     });
   };
 
-  // ПРОВЕРИТЬ КОД
   window.verifyCode = () => {
     const val = document.getElementById('r-code').value.trim();
     if(val === tempGeneratedCode) {
@@ -234,7 +226,6 @@
     } else alert("Неверный код!");
   };
 
-  // РЕГИСТРАЦИЯ (ФИНАЛ)
   window.registerUser = async () => {
     const email = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
@@ -261,7 +252,6 @@
     }
   };
 
-  // ВХОД
   window.loginUser = async () => {
     const email = document.getElementById('l-email').value;
     const pass = document.getElementById('l-pass').value;
@@ -274,7 +264,6 @@
     } catch(e) { alert("Ошибка входа: " + e.message); }
   };
 
-  // СОХРАНЕНИЕ ПРОФИЛЯ
   window.saveData = async () => {
     const newNick = document.getElementById('set-user').value;
     const newBio = document.getElementById('set-bio').value;
@@ -298,23 +287,19 @@
     } catch(e) { alert("Ошибка сохранения: " + e.message); }
   };
 
-  // ПЕРЕХОД В ПРИЛОЖЕНИЕ
   function showApp(nick, id, av = "", bio = "") {
     document.getElementById('ui-nick').innerText = "@" + nick;
     document.getElementById('ui-id').innerText = "Hate ID: " + id;
     document.getElementById('set-user').value = nick;
     document.getElementById('set-bio').value = bio;
-    
     if(av) {
         document.getElementById('ui-av').src = av;
         document.getElementById('ui-av').style.display = 'block';
         document.getElementById('av-stub').style.display = 'none';
         document.getElementById('set-av-pre').src = av;
     }
-    
     const auth = document.getElementById('auth-screen');
     const appS = document.getElementById('app-screen');
-    
     auth.style.opacity = '0';
     setTimeout(() => {
         auth.style.display = 'none';
@@ -334,22 +319,17 @@
     }
   };
 
-  // ПОИСК (Enter)
   document.getElementById('global-search').addEventListener('keypress', async (e) => {
     if(e.key === 'Enter') {
         const val = e.target.value.trim();
         if(!val) return;
-        
         const chatList = document.getElementById('chatList');
         chatList.innerHTML = "<div style='padding:20px; color:gray;'>Поиск...</div>";
-        
         try {
             const q = query(collection(db, "users"), where("id", "==", parseInt(val)));
             const snap = await getDocs(q);
             chatList.innerHTML = "";
-            if(snap.empty) {
-                chatList.innerHTML = "<div style='padding:20px; color:gray;'>Никого не нашли</div>";
-            }
+            if(snap.empty) chatList.innerHTML = "<div style='padding:20px; color:gray;'>Никого не нашли</div>";
             snap.forEach(doc => {
                 const u = doc.data();
                 const div = document.createElement('div');
