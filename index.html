@@ -4,67 +4,46 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>Hate Me</title>
-
 <script src="https://unpkg.com/lucide@latest"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
-
 <style>
   :root {
     --bg: #0a0a0a; --s1: #111; --s2: #181818;
     --t1: #f0f0f0; --t3: #666; --acc: #ffffff;
-    --bd: rgba(255,255,255,0.08); --err: #ff4d4d; /* Добавили цвет ошибки */
+    --bd: rgba(255,255,255,0.08); --err: #ff4d4d;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
   body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
-
-  /* АНИМАЦИИ */
   @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .anim-fade { animation: fadeIn 0.6s ease; }
   .anim-slide { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-  /* ЛОГО */
-  .logo-container { margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; animation: scaleIn 0.8s ease; }
+  .logo-container { margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; }
   .logo-main { display: flex; flex-direction: column; line-height: 0.8; font-weight: 700; font-size: 72px; letter-spacing: -4px; }
   .logo-main .hate { color: var(--t3); }
   .logo-main .me { color: #fff; margin-left: 55px; }
-
-  /* АВТОРИЗАЦИЯ */
-  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: 0.8s; }
-  .auth-card { width: 100%; max-width: 400px; background: var(--s1); border: 1px solid var(--bd); border-radius: 32px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { width: 100%; max-width: 400px; background: var(--s1); border: 1px solid var(--bd); border-radius: 32px; overflow: hidden; }
   .auth-nav { display: flex; border-bottom: 1px solid var(--bd); }
   .auth-nav button { flex: 1; padding: 22px; background: none; border: none; color: var(--t3); font-weight: 700; cursor: pointer; }
   .auth-nav button.active { color: #fff; background: rgba(255,255,255,0.03); }
   .auth-body { padding: 40px; min-height: 320px; }
   .auth-step { display: none; }
   .auth-step.active { display: block; animation: slideUp 0.4s ease forwards; }
-
-  /* ПРИЛОЖЕНИЕ */
-  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transform: scale(1.1); transition: 0.8s; }
-  #app-screen.visible { display: flex; opacity: 1; transform: scale(1); }
-  .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
-  
   .input-group { margin-bottom: 22px; }
   .input-group label { display: block; font-size: 10px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
   .input-group input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; border-radius: 16px; color: #fff; font-size: 14px; }
-  
-  /* СТИЛЬ ОШИБКИ */
-  .auth-error { color: var(--err); font-size: 11px; margin-top: -15px; margin-bottom: 15px; display: none; font-weight: 500; animation: fadeIn 0.3s ease; }
-
-  .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; transition: 0.3s; }
-  .btn-main:hover:not(:disabled) { transform: translateY(-3px); opacity: 0.9; }
-  .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
-
+  #reg-error { color: var(--err); font-size: 11px; margin-top: -15px; margin-bottom: 15px; display: none; }
+  .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; }
+  .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; }
+  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transition: 0.8s; }
+  #app-screen.visible { display: flex; opacity: 1; }
+  .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
   .prof-box { padding: 20px; border-top: 1px solid var(--bd); background: #0c0c0c; display: flex; align-items: center; gap: 12px; }
 </style>
 </head>
 <body>
-
 <div id="auth-screen">
-  <div class="logo-container">
-    <div class="logo-main"><span class="hate">Hate</span><span class="me">Me</span></div>
-  </div>
+  <div class="logo-container"><div class="logo-main"><span class="hate">Hate</span><span class="me">Me</span></div></div>
   <div class="auth-card anim-slide">
     <div class="auth-nav">
         <button id="tab-login" class="active" onclick="switchAuth('login')">ВХОД</button>
@@ -78,7 +57,7 @@
         </div>
         <div id="step-reg-1" class="auth-step">
             <div class="input-group"><label>Электронная почта</label><input type="email" id="r-email" placeholder="email@example.com"></div>
-            <div id="reg-error" class="auth-error">Эта почта уже зарегистрирована</div>
+            <div id="reg-error">Эта почта уже зарегистрирована</div>
             <button class="btn-main" id="btn-get-code" onclick="sendCode()">Получить код</button>
         </div>
         <div id="step-reg-2" class="auth-step">
@@ -98,7 +77,7 @@
     <div style="padding: 30px 25px;"><h3>Hate Me</h3></div>
     <div style="flex:1"></div>
     <div class="prof-box">
-        <div id="av-stub" style="width:44px; height:44px; border-radius:14px; background:#222; display:flex; align-items:center; justify-content:center;"><i data-lucide="user"></i></div>
+        <div style="width:44px; height:44px; border-radius:14px; background:#222; display:flex; align-items:center; justify-content:center;"><i data-lucide="user"></i></div>
         <div style="flex:1">
             <div id="ui-nick" style="font-weight:700; font-size:14px;">@username</div>
             <div id="ui-id" style="color:var(--t3); font-size:10px;">Hate ID: 0000000000</div>
@@ -122,8 +101,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  
-  let tempGeneratedCode = "";
+  let tempCode = "";
   let canSend = true;
 
   lucide.createIcons();
@@ -140,78 +118,44 @@
     document.getElementById('step-reg-'+n).classList.add('active');
   };
 
-  // ОБНОВЛЕННАЯ ФУНКЦИЯ: Сначала проверяет Firebase
-  window.sendCode = async function() {
+  window.sendCode = async () => {
     if (!canSend) return;
-
     const email = document.getElementById('r-email').value;
-    if(!email.includes('@')) return alert("Введите корректный Email!");
+    if(!email.includes('@')) return;
     
-    const errorBlock = document.getElementById('reg-error');
+    const err = document.getElementById('reg-error');
     const btn = document.getElementById('btn-get-code');
 
-    // ШАГ 1: Проверяем, есть ли такой email в базе
-    try {
-        const snap = await getDoc(doc(db, "users", email));
-        if (snap.exists()) {
-            // Email ЗАHЯТ: Показываем ошибку и выходим
-            errorBlock.style.display = 'block';
-            return;
-        } else {
-            // Email СВОБОДЕH: Прячем ошибку и идем дальше
-            errorBlock.style.display = 'none';
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Ошибка Firebase при проверке!");
+    const snap = await getDoc(doc(db, "users", email));
+    if (snap.exists()) {
+        err.style.display = 'block';
         return;
     }
+    err.style.display = 'none';
 
-    // ШАГ 2: Если email свободен, отправляем код (как раньше)
     canSend = false;
-    tempGeneratedCode = Math.floor(100000 + Math.random() * 900000).toString();
+    tempCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    let timeLeft = 30;
+    let time = 30;
     btn.disabled = true;
-    const timerInterval = setInterval(() => {
-        btn.innerText = `Повтор через ${timeLeft}s`;
-        timeLeft--;
-        if (timeLeft < 0) {
-            clearInterval(timerInterval);
-            canSend = true;
-            btn.disabled = false;
-            btn.innerText = "Получить код";
+    const timer = setInterval(() => {
+        btn.innerText = `Wait ${time}s`;
+        if (time-- <= 0) {
+            clearInterval(timer);
+            canSend = true; btn.disabled = false; btn.innerText = "Получить код";
         }
     }, 1000);
 
-    try {
-        const response = await fetch('http://localhost:5000/send-code', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ email: email, code: tempGeneratedCode })
-        });
-        if(response.ok) {
-            nextStep(2);
-        } else {
-            alert("Ошибка сервера Python");
-        }
-    } catch(e) {
-        alert("Запусти сервер Python (server.py)!");
-        // В случае ошибки сервера, сбрасываем таймер
-        clearInterval(timerInterval);
-        canSend = true;
-        btn.disabled = false;
-        btn.innerText = "Получить код";
-    }
+    fetch('https://server-roan-omega.vercel.app/send-code', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: email, code: tempCode })
+    }).then(res => { if(res.ok) nextStep(2); });
   };
 
   window.verifyCode = () => {
-    const userInp = document.getElementById('r-code').value.trim();
-    if(String(userInp) === String(tempGeneratedCode)) {
-        nextStep(3);
-    } else {
-        alert("Неверный код!");
-    }
+    if(document.getElementById('r-code').value.trim() === tempCode) nextStep(3);
+    else alert("Wrong code");
   };
 
   window.registerUser = async () => {
@@ -224,25 +168,20 @@
 
   window.loginUser = async () => {
     const email = document.getElementById('l-email').value;
-    const pass = document.getElementById('l-pass').value;
     const snap = await getDoc(doc(db, "users", email));
-    if(snap.exists() && snap.data().password === pass) {
+    if(snap.exists() && snap.data().password === document.getElementById('l-pass').value) {
         showApp(snap.data().nick, snap.data().id);
-    } else alert("Ошибка входа!");
+    } else alert("Error");
   };
 
   function showApp(nick, id) {
     document.getElementById('ui-nick').innerText = "@" + nick;
     document.getElementById('ui-id').innerText = "Hate ID: " + id;
-    const auth = document.getElementById('auth-screen');
+    document.getElementById('auth-screen').style.display = 'none';
     const appS = document.getElementById('app-screen');
-    auth.style.opacity = '0';
-    setTimeout(() => {
-        auth.style.display = 'none';
-        appS.style.display = 'flex';
-        setTimeout(() => appS.classList.add('visible'), 50);
-        lucide.createIcons();
-    }, 600);
+    appS.style.display = 'flex';
+    setTimeout(() => appS.classList.add('visible'), 50);
+    lucide.createIcons();
   }
 </script>
 </body>
