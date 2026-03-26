@@ -36,13 +36,13 @@
   .contact-item { padding: 18px 25px; display: flex; align-items: center; gap: 15px; cursor: pointer; border-bottom: 1px solid var(--bd); }
   .contact-item:hover { background: rgba(255,255,255,0.02); }
   
-  .av-main { width: 45px; height: 45px; border-radius: 50%; background: #222; overflow: hidden; object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .av-main { width: 45px; height: 45px; border-radius: 50%; background: #222; overflow: hidden; object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
   .bubble { max-width: 80%; padding: 14px 18px; border-radius: 20px; font-size: 14px; margin-bottom: 6px; }
   .bubble.me { align-self: flex-end; background: #fff; color: #000; border-bottom-right-radius: 4px; }
   .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 4px; }
 
-  /* SETTINGS PANEL (ORIGINAL STYLE) */
+  /* SETTINGS PANEL */
   .modal-overlay { position: fixed; inset: 0; background: rgba(5,5,5,0.92); backdrop-filter: var(--blur); z-index: 4000; display: none; flex-direction: column; align-items: center; padding: 40px 20px; animation: fade 0.3s ease; overflow-y: auto; }
   .settings-container { width: min(100%, 500px); }
   .section-title { font-size: 11px; color: var(--t3); text-transform: uppercase; font-weight: 800; margin: 30px 0 15px 10px; letter-spacing: 1px; }
@@ -52,9 +52,6 @@
 
   .av-upload-box { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; cursor: pointer; }
   .av-upload-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--bd); }
-
-  .device-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--bd); }
-  .device-item:last-child { border: none; }
 
   .pc-hide { display: none; }
   @media (max-width: 768px) { .pc-hide { display: block; } }
@@ -117,17 +114,12 @@
         <input type="file" id="av-input" hidden accept="image/*" onchange="uploadAv(this)">
     </div>
 
-    <div class="section-title">Основное</div>
+    <div class="section-title">Аккаунт</div>
     <div class="set-card" onclick="changeField('name')"><div class="set-card-content"><div class="set-card-label">Имя</div><span id="s-name">User</span></div><i data-lucide="chevron-right" style="color:var(--t3)"></i></div>
-    <div class="set-card" onclick="changeField('nick')"><div class="set-card-content"><div class="set-card-label">@user</div><span id="s-nick">@not_set</span></div><i data-lucide="chevron-right" style="color:var(--t3)"></i></div>
-    <div class="set-card" onclick="changeField('phone')"><div class="set-card-content"><div class="set-card-label">Телефон</div><span id="s-phone">Не указан</span></div><i data-lucide="chevron-right" style="color:var(--t3)"></i></div>
+    <div class="set-card" onclick="changeField('nick')"><div class="set-card-content"><div class="set-card-label">Имя пользователя</div><span id="s-nick">@not_set</span></div><i data-lucide="chevron-right" style="color:var(--t3)"></i></div>
+    <div class="set-card" style="cursor:default"><div class="set-card-content"><div class="set-card-label">Почта</div><span id="s-email">Email</span></div></div>
     <div class="set-card" onclick="changeField('bio')"><div class="set-card-content"><div class="set-card-label">О себе</div><span id="s-bio">Hate hate hate...</span></div><i data-lucide="chevron-right" style="color:var(--t3)"></i></div>
 
-    <div class="section-title">Конфиденциальность</div>
-    <div class="set-card" style="display:block; cursor:default">
-        <div class="set-card-label" style="margin-bottom:15px">Устройства</div>
-        <div id="device-list"></div>
-    </div>
     <button class="btn-p" onclick="logout()" style="margin-top:40px; background:rgba(255,0,0,0.1); color:#ff4d4d">Выйти</button>
   </div>
 </div>
@@ -156,13 +148,6 @@
   let _me = null, _to = null, _code = "", _mode = 'login', _sub = null, _chatsSub = null;
   const notify = (t) => { const el = document.getElementById('toast'); el.innerText = t; el.style.display = 'block'; setTimeout(() => el.style.display='none', 3000); };
   const updateIcons = () => lucide.createIcons();
-
-  function getDeviceInfo() {
-    const ua = navigator.userAgent;
-    let name = "PC", icon = "monitor";
-    if(/iPhone|Android/.test(ua)) { name = /iPhone/.test(ua) ? "iPhone" : "Android"; icon = "smartphone"; }
-    return { name, icon, id: Math.random().toString(36).substr(2, 5) };
-  }
 
   window.onload = async () => {
     const saved = localStorage.getItem('hate_session');
@@ -194,18 +179,14 @@
   window.verify = () => { if(document.getElementById('r-code').value === _code) renderAuth(3); };
   window.finishReg = async () => {
     const email = document.getElementById('r-email').value, pass = document.getElementById('r-pass').value;
-    const user = { name: "User", nick: "", phone: "", bio: "", password: pass, myChats: [], av: "", devices: [getDeviceInfo()] };
+    const user = { name: "User", nick: "", bio: "hate hate hate, i hate it, hat all", password: pass, myChats: [], av: "" };
     await setDoc(doc(db, "users", email), user);
     _me = { ...user, email }; enterApp();
   };
   window.doLogin = async () => {
     const m = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
     const s = await getDoc(doc(db, "users", m));
-    if(s.exists() && s.data().password === p) { 
-        _me = { ...s.data(), email: m }; 
-        await updateDoc(doc(db, "users", m), { devices: arrayUnion(getDeviceInfo()) });
-        enterApp(); 
-    } else notify("Ошибка");
+    if(s.exists() && s.data().password === p) { _me = { ...s.data(), email: m }; enterApp(); } else notify("Ошибка");
   };
 
   function enterApp() {
@@ -218,14 +199,9 @@
   function updateInfo() {
     document.getElementById('s-name').innerText = _me.name;
     document.getElementById('s-nick').innerText = _me.nick ? "@" + _me.nick : "не задан";
-    document.getElementById('s-phone').innerText = _me.phone || "Не указан";
-    document.getElementById('s-bio').innerText = _me.bio || "Напиши о себе";
+    document.getElementById('s-email').innerText = _me.email;
+    document.getElementById('s-bio').innerText = _me.bio || "О себе";
     if(_me.av) document.getElementById('my-av-img').src = _me.av;
-    
-    const devList = document.getElementById('device-list'); devList.innerHTML = "";
-    (_me.devices || []).forEach(d => {
-        devList.innerHTML += `<div class="device-item"><i data-lucide="${d.icon}"></i><div style="flex:1"><b>${d.name}</b><div style="font-size:10px;color:var(--t3)">Активен</div></div></div>`;
-    });
     updateIcons();
   }
 
@@ -235,11 +211,9 @@
     reader.onloadend = async () => {
         const img = new Image(); img.src = reader.result;
         img.onload = async () => {
-            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-            canvas.width = 150; canvas.height = 150; ctx.drawImage(img, 0, 0, 150, 150);
-            const compressed = canvas.toDataURL('image/jpeg', 0.6);
-            await updateDoc(doc(db, "users", _me.email), { av: compressed });
-            _me.av = compressed; updateInfo();
+            const canvas = document.createElement('canvas'); const ctx = canvas.toDataURL('image/jpeg', 0.6);
+            await updateDoc(doc(db, "users", _me.email), { av: canvas });
+            _me.av = canvas; updateInfo();
         };
     };
     reader.readAsDataURL(file);
@@ -249,15 +223,14 @@
 
   window.changeField = async (t) => {
     let val = prompt("Введите значение:"); if(val === null) return;
-    let up = {}; if(t === 'name') up.name = val; else if(t === 'nick') up.nick = val.replace('@','').toLowerCase(); else if(t === 'phone') up.phone = val; else if(t === 'bio') up.bio = val;
+    let up = {}; if(t === 'name') up.name = val; else if(t === 'nick') up.nick = val.replace('@','').toLowerCase(); else if(t === 'bio') up.bio = val;
     await updateDoc(doc(db, "users", _me.email), up); Object.assign(_me, up); updateInfo();
   };
 
   window.processCreate = async () => {
     const type = document.getElementById('create-type').value, name = document.getElementById('create-name').value.trim();
     if(!name) return notify("Название!");
-    const members = [_me.email];
-    const docRef = await addDoc(collection(db, "groups"), { name, type, creator: _me.email, participants: members, time: Date.now() });
+    const docRef = await addDoc(collection(db, "groups"), { name, type, creator: _me.email, participants: [_me.email], time: Date.now() });
     await updateDoc(doc(db, "users", _me.email), { myChats: arrayUnion({ id: docRef.id, type: 'group' }) });
     toggleModal('create-modal');
   };
@@ -276,7 +249,7 @@
             } else {
                 const u = (await getDoc(doc(db, "users", item.id))).data();
                 title = u.name; sub = "@" + u.nick;
-                av = u.av ? `<img src="${u.av}" class="av-main">` : `<div class="av-main">${u.name[0]}</div>`;
+                av = u.av ? `<img src="${u.av}" class="av-main">` : `<div class="av-main">${title[0]}</div>`;
             }
             const div = document.createElement('div'); div.className = "contact-item";
             div.innerHTML = `${av}<div><b>${title}</b><div style="font-size:11px;color:var(--t3)">${sub}</div></div>`;
