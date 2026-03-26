@@ -24,6 +24,7 @@
   .tab.active { color: #fff; background: rgba(255,255,255,0.02); }
   .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 15px; color: #000; font-size: 14px; margin-bottom: 15px; }
   .btn-p { width: 100%; padding: 18px; border-radius: 15px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; }
+  .btn-p:disabled { opacity: 0.5; cursor: not-allowed; }
 
   #app-screen { display: none; width: 100%; height: 100%; }
   .sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--bd); display: flex; flex-direction: column; z-index: 10; }
@@ -55,10 +56,9 @@
   .hidden { display: none !important; }
   .hp { opacity: 0; position: absolute; top: 0; left: 0; height: 0; width: 0; z-index: -1; }
   
-  #cf-turnstile { margin: 15px 0; display: flex; justify-content: center; }
-  .rate-limit-info { font-size: 11px; color: var(--t3); text-align: center; margin-top: 10px; }
+  .cf-box { margin: 15px 0; min-height: 65px; display: flex; justify-content: center; }
+  .rate-info { font-size: 11px; color: var(--t3); text-align: center; margin-top: 10px; }
 </style>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -151,10 +151,12 @@
   </div>
 </div>
 
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc, arrayUnion, orderBy, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc, arrayUnion, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
   const _0xHate = ["QUl6YVN5QS1QTER2YUxuem9KV1RXSmIxN1U0RkpVMHppUWZMMGVV", "aGF0ZS0yNDM2NS5maXJlYmFzZWFwcC5jb20=", "aGF0ZS0yNDM2NQ==", "aGF0ZS0yNDM2NS5maXJlYmFzZXN0b3JhZ2UuYXBw", "MTo5OTA0ODQ4MDI1NzQ6d2ViOjU2ZTBmOTRiOGU1OGRmMTQ0YTA1Zg=="];
   const decrypt = (s) => atob(s);
@@ -171,99 +173,7 @@
   let _deviceId = localStorage.getItem('hate_device') || crypto.randomUUID();
   localStorage.setItem('hate_device', _deviceId);
 
-  const getIP = async () => {
-    try {
-      const res = await fetch('https://api.ipify.org?format=json');
-      const data = await res.json();
-      return data.ip;
-    } catch {
-      return _deviceId;
-    }
-  };
-
-  const checkRateLimit = async (type, limit, windowMs) => {
-    if (_blocked) return false;
-    
-    const ip = await getIP();
-    const key = `rl_${type}_${ip}`;
-    const now = Date.now();
-    
-    try {
-      const rlDoc = await getDoc(doc(db, "ratelimits", key));
-      const data = rlDoc.exists() ? rlDoc.data() : { count: 0, reset: now + windowMs };
-      
-      if (now > data.reset) {
-        await setDoc(doc(db, "ratelimits", key), { count: 1, reset: now + windowMs, ip: ip });
-        return true;
-      }
-      
-      if (data.count >= limit) {
-        _blocked = true;
-        setTimeout(() => _blocked = false, windowMs);
-        notify("Слишком много запросов. Подождите.");
-        return false;
-      }
-      
-      await setDoc(doc(db, "ratelimits", key), { 
-        count: data.count + 1, 
-        reset: data.reset, 
-        ip: ip,
-        lastRequest: now 
-      });
-      
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const NVS = async (type = 'default') => {
-    if (document.getElementById('hp-field').value !== "" || document.getElementById('hp-field2').value !== "") {
-      await logSecurityEvent('honeypot_triggered');
-      return false;
-    }
-    
-    const limits = {
-      'login': { limit: 3, window: 300000 },
-      'msg': { limit: 10, window: 60000 },
-      'create': { limit: 2, window: 300000 },
-      'default': { limit: 5, window: 60000 }
-    };
-    
-    const cfg = limits[type] || limits['default'];
-    return await checkRateLimit(type, cfg.limit, cfg.window);
-  };
-
-  const logSecurityEvent = async (event) => {
-    try {
-      await addDoc(collection(db, "security_logs"), {
-        event: event,
-        device: _deviceId,
-        timestamp: serverTimestamp(),
-        userAgent: navigator.userAgent,
-        url: window.location.href
-      });
-    } catch {}
-  };
-
-  const verifyCF = async () => {
-    return new Promise((resolve) => {
-      if (!_cfToken) {
-        turnstile.ready(() => {
-          turnstile.render('#cf-turnstile', {
-            sitekey: '0x4AAAAAAAyOurS1teKey', // заменить на свой
-            callback: (token) => {
-              _cfToken = token;
-              resolve(true);
-            },
-            'error-callback': () => resolve(false)
-          });
-        });
-      } else {
-        resolve(true);
-      }
-    });
-  };
+  const CF_SITE_KEY = '1x00000000000000000000AA'; // ЗАМЕНИТЬ НА СВОЙ
 
   const notify = (t) => { 
     const el = document.getElementById('toast'); 
@@ -273,23 +183,6 @@
   };
   
   const updateIcons = () => lucide.createIcons();
-
-  window.onload = async () => {
-    const saved = localStorage.getItem('hate_session');
-    if(saved) {
-      try {
-        const data = JSON.parse(saved);
-        const s = await getDoc(doc(db, "users", data.email));
-        if(s.exists()) { 
-          _me = { ...s.data(), email: data.email }; 
-          await signInAnonymously(auth);
-          enterApp(); 
-        }
-      } catch(e) { 
-        localStorage.removeItem('hate_session'); 
-      }
-    }
-  };
 
   window.setAuth = (m) => { 
     _mode = m; 
@@ -304,18 +197,20 @@
         <div style="padding:25px">
           <input type="email" id="l-email" class="input-box" placeholder="Email" autocomplete="email">
           <input type="password" id="l-pass" class="input-box" placeholder="Пароль" autocomplete="current-password">
-          <div id="cf-turnstile"></div>
-          <button class="btn-p" onclick="doLogin()">Войти</button>
-          <div class="rate-limit-info">3 попытки входа за 5 минут</div>
+          <div class="cf-box" id="cf-container"></div>
+          <button class="btn-p" id="login-btn" onclick="doLogin()" disabled>Войти</button>
+          <div class="rate-info">3 попытки входа за 5 минут</div>
         </div>`;
+      initCF('cf-container', 'login-btn');
     } else {
       if(step === 1) {
         box.innerHTML = `
           <div style="padding:25px">
             <input type="email" id="r-email" class="input-box" placeholder="Email" autocomplete="email">
-            <div id="cf-turnstile"></div>
-            <button class="btn-p" onclick="sendCode()">Получить код</button>
+            <div class="cf-box" id="cf-container"></div>
+            <button class="btn-p" id="reg-btn" onclick="sendCode()" disabled>Получить код</button>
           </div>`;
+        initCF('cf-container', 'reg-btn');
       } else if(step === 2) {
         box.innerHTML = `
           <div style="padding:25px">
@@ -330,14 +225,35 @@
           </div>`;
       }
     }
-    if (step === 1) verifyCF();
+    updateIcons();
   }
-  renderAuth();
+
+  function initCF(containerId, btnId) {
+    if (typeof turnstile === 'undefined') {
+      setTimeout(() => initCF(containerId, btnId), 100);
+      return;
+    }
+    
+    turnstile.render(`#${containerId}`, {
+      sitekey: CF_SITE_KEY,
+      callback: (token) => {
+        _cfToken = token;
+        document.getElementById(btnId).disabled = false;
+      },
+      'error-callback': () => {
+        notify('Ошибка проверки');
+        document.getElementById(btnId).disabled = true;
+      }
+    });
+  }
 
   const clean = (str) => str.replace(/[<>\"']/g, "").trim();
 
   window.sendCode = async () => {
-    if(!await NVS('login')) return;
+    if (!_cfToken) {
+      notify('Пройдите проверку');
+      return;
+    }
     
     const email = clean(document.getElementById('r-email').value);
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
@@ -345,23 +261,25 @@
       return;
     }
     
-    _code = crypto.randomUUID().substring(0, 8).toUpperCase();
+    _code = Math.floor(100000 + Math.random() * 900000).toString();
     
     try {
-      await fetch('https://server-roan-omega.vercel.app/send-code', { 
+      const res = await fetch('https://server-roan-omega.vercel.app/send-code', { 
         method: 'POST', 
         headers: {'Content-Type': 'application/json'}, 
         body: JSON.stringify({ email, code: _code, cf: _cfToken }) 
       });
+      
+      if (!res.ok) throw new Error('Server error');
+      
       renderAuth(2);
     } catch(e) { 
       notify("Ошибка сервера"); 
-      await logSecurityEvent('email_send_failed');
     }
   };
 
   window.verify = () => { 
-    const input = document.getElementById('r-code').value.toUpperCase();
+    const input = document.getElementById('r-code').value;
     if(input === _code) renderAuth(3); 
     else {
       notify("Неверный код");
@@ -370,8 +288,6 @@
   };
 
   window.finishReg = async () => {
-    if(!await NVS('login')) return;
-    
     const email = clean(document.getElementById('r-email').value);
     const pass = document.getElementById('r-pass').value;
     
@@ -399,7 +315,10 @@
   };
 
   window.doLogin = async () => {
-    if(!await NVS('login')) return;
+    if (!_cfToken) {
+      notify('Пройдите проверку');
+      return;
+    }
     
     const m = clean(document.getElementById('l-email').value);
     const p = document.getElementById('l-pass').value;
@@ -418,10 +337,6 @@
     
     notify("Неверный email или пароль");
     _attempts.login++;
-    
-    if (_attempts.login >= 3) {
-      await logSecurityEvent('brute_force_attempt');
-    }
   };
 
   async function hashPass(pass) {
@@ -451,18 +366,11 @@
   }
 
   window.uploadAv = async (input) => {
-    if(!await NVS('default')) return;
-    
     const file = input.files[0]; 
     if(!file) return;
     
     if(file.size > 500000) {
       notify("Файл слишком велик (макс 500KB)");
-      return;
-    }
-    
-    if(!file.type.startsWith('image/')) {
-      notify("Только изображения");
       return;
     }
     
@@ -491,8 +399,6 @@
   };
 
   window.changeField = async (t) => {
-    if(!await NVS('default')) return;
-    
     let val = prompt("Введите значение:"); 
     if(!val) return;
     
@@ -513,8 +419,6 @@
   };
 
   window.processCreate = async () => {
-    if(!await NVS('create')) return;
-    
     const type = document.getElementById('create-type').value;
     const name = clean(document.getElementById('create-name').value);
     
@@ -528,8 +432,7 @@
       type, 
       creator: _me.email, 
       participants: [_me.email], 
-      created: serverTimestamp(),
-      device: _deviceId
+      created: serverTimestamp()
     });
     
     await updateDoc(doc(db, "users", _me.email), { 
@@ -568,6 +471,7 @@
         div.onclick = () => openChat(item); 
         list.appendChild(div);
       }
+      updateIcons();
     });
   }
 
@@ -619,8 +523,6 @@
   }
 
   window.sendMsg = async () => {
-    if(!await NVS('msg')) return;
-    
     const inp = document.getElementById('msg-input');
     const val = clean(inp.value); 
     if(!val || val.length > 500) {
@@ -644,8 +546,7 @@
     await addDoc(collection(db, path), { 
       from: _me.email, 
       text: val, 
-      time: serverTimestamp(),
-      device: _deviceId
+      time: serverTimestamp()
     });
     
     inp.value = "";
@@ -667,6 +568,24 @@
   window.logout = () => { 
     localStorage.removeItem('hate_session'); 
     location.reload(); 
+  };
+
+  window.onload = async () => {
+    const saved = localStorage.getItem('hate_session');
+    if(saved) {
+      try {
+        const data = JSON.parse(saved);
+        const s = await getDoc(doc(db, "users", data.email));
+        if(s.exists()) { 
+          _me = { ...s.data(), email: data.email }; 
+          await signInAnonymously(auth);
+          enterApp(); 
+        }
+      } catch(e) { 
+        localStorage.removeItem('hate_session'); 
+      }
+    }
+    renderAuth();
   };
 </script>
 </body>
