@@ -2,93 +2,148 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <title>Hate Me</title>
 <script src="https://unpkg.com/lucide@latest"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
-  :root { --bg: #050505; --s1: #0f0f0f; --s2: #161616; --t1: #f0f0f0; --t3: #555; --acc: #ffffff; --bd: rgba(255,255,255,0.06); --on: #00ff66; }
-  * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-  body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
+  :root { 
+    --bg: #030303; --card: #0a0a0a; --s2: #121212; --t1: #ffffff; --t3: #555; 
+    --acc: #ffffff; --bd: rgba(255,255,255,0.06); --on: #00ff66; --blur: blur(20px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+  body { 
+    background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; 
+    height: 100dvh; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  }
 
-  @keyframes entrance { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  .anim-enter { animation: entrance 0.4s ease forwards; }
+  /* АНИМАЦИИ */
+  @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes gear { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
+  .anim-fade { animation: fade 0.4s ease forwards; }
 
-  /* AUTH */
+  /* УВЕДОМЛЕНИЯ ВМЕСТО ALERT */
+  #toast { 
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+    background: #fff; color: #000; padding: 12px 24px; border-radius: 12px; 
+    font-size: 14px; font-weight: 700; z-index: 5000; display: none;
+  }
+
+  /* AUTH SCREEN */
   #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .logo-main { font-size: 48px; font-weight: 700; margin-bottom: 30px; letter-spacing: -2px; }
-  .logo-main span { color: var(--t3); }
-  .auth-box { width: 380px; background: #0f0f0f; border-radius: 24px; border: 1px solid var(--bd); overflow: hidden; }
+  .auth-box { width: min(90%, 380px); background: var(--card); border-radius: 30px; border: 1px solid var(--bd); overflow: hidden; }
   .auth-tabs { display: flex; border-bottom: 1px solid var(--bd); }
-  .tab { flex: 1; padding: 18px; text-align: center; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--t3); text-transform: uppercase; }
-  .tab.active { color: #fff; background: rgba(255,255,255,0.03); }
+  .tab { flex: 1; padding: 20px; text-align: center; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--t3); text-transform: uppercase; }
+  .tab.active { color: #fff; background: rgba(255,255,255,0.02); }
   .auth-body { padding: 30px; }
-  .label-mini { font-size: 9px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; display: block; font-weight: 700; }
-  .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 12px; color: #000; font-size: 14px; font-weight: 500; margin-bottom: 20px; }
-  .btn-white { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; }
+  .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 15px; color: #000; font-size: 14px; margin-bottom: 15px; }
+  .btn-p { width: 100%; padding: 18px; border-radius: 15px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; }
 
-  /* APP */
-  #app-screen { display: none; width: 100%; height: 100vh; }
-  .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
-  .chat-area { flex: 1; background: #080808; display: flex; flex-direction: column; }
+  /* APP LAYOUT */
+  #app-screen { display: none; width: 100%; height: 100%; }
   
-  .contact-item { padding: 15px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
-  .contact-item:hover { background: rgba(255,255,255,0.03); }
+  /* PC VERSION */
+  .layout-pc { display: flex; width: 100%; height: 100%; }
+  .sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
+  .chat-area { flex: 1; background: var(--bg); display: flex; flex-direction: column; position: relative; }
 
-  .bubble { max-width: 70%; padding: 12px 16px; border-radius: 18px; font-size: 14px; margin-bottom: 5px; line-height: 1.4; }
+  /* MOBILE VERSION ADAPTATION */
+  @media (max-width: 768px) {
+    .sidebar { width: 100%; position: absolute; inset: 0; z-index: 10; }
+    .sidebar.hide { display: none; }
+    .chat-area { width: 100%; }
+  }
+
+  .contact-item { padding: 18px 25px; display: flex; align-items: center; gap: 15px; cursor: pointer; border-bottom: 1px solid var(--bd); }
+  .contact-item:hover { background: rgba(255,255,255,0.02); }
+  
+  .bubble { max-width: 80%; padding: 14px 18px; border-radius: 20px; font-size: 14px; margin-bottom: 6px; word-wrap: break-word; }
   .bubble.me { align-self: flex-end; background: #fff; color: #000; border-bottom-right-radius: 4px; }
   .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 4px; }
 
-  /* PROFILE TG STYLE */
-  #settings { position: fixed; inset: 0; background: #0e1621; z-index: 3000; display: none; flex-direction: column; }
-  .set-header { padding: 20px; display: flex; align-items: center; gap: 20px; font-size: 18px; }
-  .set-avatar-block { padding: 40px 20px; text-align: center; }
-  .set-av-circle { width: 100px; height: 100px; border-radius: 50%; background: #2b333e; margin: 0 auto 15px; overflow: hidden; }
-  .set-row { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 25px; cursor: pointer; }
-  .set-val { font-size: 15px; color: #fff; }
-  .set-lab { font-size: 13px; color: #8095a8; }
-  
+  /* УНИКАЛЬНЫЙ ДИЗАЙН НАСТРОЕК (НЕ ТЕЛЕГА) */
+  #settings-panel { 
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(100%, 450px); 
+    background: rgba(10,10,10,0.85); backdrop-filter: var(--blur); 
+    z-index: 4000; display: none; flex-direction: column; border-left: 1px solid var(--bd);
+    animation: slide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .set-head { padding: 40px 30px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .set-grid { padding: 20px; display: grid; gap: 15px; }
+  .set-card { 
+    background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; 
+    border: 1px solid var(--bd); transition: 0.3s; cursor: pointer;
+  }
+  .set-card:hover { border-color: #555; background: rgba(255,255,255,0.05); }
+  .set-card label { font-size: 10px; color: var(--t3); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px; }
+  .set-card span { font-size: 16px; font-weight: 500; }
+
+  .gear-icon:hover { animation: gear 0.5s ease-in-out; }
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
+<div id="toast"></div>
+
 <div id="auth-screen">
-  <div class="logo-main">Hate <span>Me</span></div>
-  <div class="auth-box anim-enter">
+  <div style="font-size: 40px; font-weight: 700; margin-bottom: 30px; letter-spacing: -2px">Hate Me</div>
+  <div class="auth-box">
     <div class="auth-tabs">
-      <div class="tab active" id="tab-login" onclick="setAuthMode('login')">Вход</div>
-      <div class="tab" id="tab-reg" onclick="setAuthMode('reg')">Регистрация</div>
+      <div class="tab active" id="t-login" onclick="setAuth('login')">Login</div>
+      <div class="tab" id="t-reg" onclick="setAuth('reg')">Join</div>
     </div>
     <div class="auth-body" id="auth-fields"></div>
   </div>
 </div>
 
-<div id="app-screen">
-  <aside class="sidebar">
-    <div style="padding:25px; display:flex; justify-content:space-between; align-items:center">
-      <h2 style="letter-spacing:-1px">Чаты</h2>
-      <i data-lucide="menu" onclick="openSet()" style="cursor:pointer; color:var(--t3)"></i>
+<div id="app-screen" class="layout-pc">
+  <aside class="sidebar" id="sidebar">
+    <div style="padding:30px; display:flex; justify-content:space-between; align-items:center">
+      <h2 style="letter-spacing:-1px">Messages</h2>
+      <i data-lucide="settings" class="gear-icon" onclick="toggleSettings()" style="cursor:pointer; color:var(--t3)"></i>
     </div>
-    <div style="padding:0 20px 20px"><input type="text" id="find" class="input-box" placeholder="Поиск @user + Enter" style="background:var(--s2); color:#fff; margin:0"></div>
+    <div style="padding:0 25px 20px"><input type="text" id="find" class="input-box" placeholder="Search @user..." style="background:var(--s2); color:#fff; margin:0"></div>
     <div id="contacts" style="flex:1; overflow-y:auto"></div>
   </aside>
+
   <main class="chat-area">
-    <div id="messages" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column"></div>
-    <div id="input-ui" style="padding:20px; display:flex; gap:12px" class="hidden">
-        <input type="text" id="msg-t" class="input-box" placeholder="Написать..." style="background:var(--s2); color:#fff; margin:0">
-        <button onclick="send()" style="background:#fff; border:none; width:50px; border-radius:12px; cursor:pointer"><i data-lucide="send" style="color:#000"></i></button>
+    <div id="chat-header" class="hidden" style="padding:20px 30px; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:15px">
+        <i data-lucide="chevron-left" class="pc-hide" onclick="closeChatMobile()" style="cursor:pointer; margin-right:10px"></i>
+        <div id="chat-av" style="width:40px; height:40px; border-radius:50%; background:#222"></div>
+        <div>
+            <div id="chat-title" style="font-weight:700">Name</div>
+            <div style="font-size:10px; color:var(--on)">Online</div>
+        </div>
+    </div>
+    <div id="messages" style="flex:1; overflow-y:auto; padding:30px; display:flex; flex-direction:column"></div>
+    <div id="input-bar" class="hidden" style="padding:25px; display:flex; gap:15px">
+        <input type="text" id="msg-input" class="input-box" placeholder="Write something..." style="background:var(--s2); color:#fff; margin:0; border-radius:20px">
+        <button onclick="sendMsg()" style="background:#fff; border:none; width:55px; height:55px; border-radius:20px; cursor:pointer; flex-shrink:0"><i data-lucide="send" style="color:#000; width:20px"></i></button>
     </div>
   </main>
 </div>
 
-<div id="settings">
-  <div class="set-header"><i data-lucide="arrow-left" onclick="closeSet()" style="cursor:pointer"></i> Информация</div>
-  <div class="set-content" style="max-width:500px; margin:0 auto; width:100%">
-    <div class="set-avatar-block"><div class="set-av-circle" id="my-av"></div><h2 id="prof-name">Имя</h2><p style="color:#8095a8; font-size:14px">в сети</p></div>
-    <div class="set-row" onclick="editField('name')"><i data-lucide="user" style="color:#8095a8"></i><div class="set-info"><div class="set-val" id="val-name">Имя</div><div class="set-lab">Имя</div></div></div>
-    <div class="set-row"><i data-lucide="mail" style="color:#8095a8"></i><div class="set-info"><div class="set-val" id="val-email">Email</div><div class="set-lab">Емаил пользователя</div></div></div>
-    <div class="set-row" onclick="editField('tag')"><i data-lucide="at-sign" style="color:#8095a8"></i><div class="set-info"><div class="set-val" id="val-tag">@username</div><div class="set-lab">Имя пользователя</div></div></div>
+<div id="settings-panel">
+  <div class="set-head">
+    <h3>Profile Settings</h3>
+    <i data-lucide="x" onclick="toggleSettings()" style="cursor:pointer"></i>
+  </div>
+  <div class="set-grid">
+    <div class="set-card" onclick="changeField('name')">
+        <label>Display Name</label>
+        <span id="s-name">User</span>
+    </div>
+    <div class="set-card" style="cursor:default; opacity:0.6">
+        <label>Account Email</label>
+        <span id="s-email">email@mail.com</span>
+    </div>
+    <div class="set-card" onclick="changeField('nick')">
+        <label>Unique Tag</label>
+        <span id="s-nick">@not_set</span>
+    </div>
+    <button class="btn-p" onclick="logout()" style="margin-top:20px; background:rgba(255,0,0,0.1); color:#ff4d4d">Logout</button>
   </div>
 </div>
 
@@ -96,107 +151,185 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  const cfg = { apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", authDomain: "hate-24365.firebaseapp.com", projectId: "hate-24365", storageBucket: "hate-24365.firebasestorage.app", appId: "1:990484802574:web:56e00d91e1e58df144a05f" };
-  const app = initializeApp(cfg);
+  const firebaseConfig = { apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", authDomain: "hate-24365.firebaseapp.com", projectId: "hate-24365", storageBucket: "hate-24365.firebasestorage.app", appId: "1:990484802574:web:56e00d91e1e58df144a05f" };
+  const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
   let _me = null, _to = null, _code = "", _mode = 'login', _sub = null;
-  lucide.createIcons();
 
-  window.setAuthMode = (m) => { _mode = m; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id.includes(m))); renderFields(); };
+  // Инициализация Lucide
+  const updateIcons = () => lucide.createIcons();
+  updateIcons();
 
-  function renderFields(step = 1) {
-    const f = document.getElementById('auth-fields');
+  // УВЕДОМЛЕНИЯ
+  function notify(text) {
+    const t = document.getElementById('toast');
+    t.innerText = text; t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  // ЗАПОМИНАНИЕ УСТРОЙСТВА
+  window.onload = async () => {
+    const saved = localStorage.getItem('hate_me_session');
+    if(saved) {
+        const data = JSON.parse(saved);
+        const now = Date.now();
+        if(now - data.time < 7 * 24 * 60 * 60 * 1000) { // 1 неделя
+            const s = await getDoc(doc(db, "users", data.email));
+            if(s.exists()) { _me = { ...s.data(), email: data.email }; enterApp(); }
+        } else {
+            localStorage.removeItem('hate_me_session');
+        }
+    }
+  };
+
+  window.setAuth = (m) => {
+    _mode = m;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 't-'+m));
+    renderAuth();
+  };
+
+  function renderAuth(step = 1) {
+    const box = document.getElementById('auth-fields');
     if(_mode === 'login') {
-      f.innerHTML = `<span class="label-mini">Почта</span><input type="email" id="l-email" class="input-box"><span class="label-mini">Пароль</span><input type="password" id="l-pass" class="input-box"><button class="btn-white" onclick="doLogin()">Войти</button>`;
+      box.innerHTML = `<input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Password"><button class="btn-p" onclick="doLogin()">Connect</button>`;
     } else {
-      if(step === 1) f.innerHTML = `<span class="label-mini">Почта</span><input type="email" id="r-email" class="input-box"><button class="btn-white" onclick="sendCode()">Код</button>`;
-      else if(step === 2) f.innerHTML = `<span class="label-mini">Код</span><input type="text" id="r-code" class="input-box"><button class="btn-white" onclick="verify()">Ок</button>`;
-      else f.innerHTML = `<span class="label-mini">Пароль</span><input type="password" id="r-pass" class="input-box"><button class="btn-white" onclick="finishReg()">Всё</button>`;
+      if(step === 1) box.innerHTML = `<input type="email" id="r-email" class="input-box" placeholder="Your Email"><button class="btn-p" onclick="sendRegCode()">Get Code</button>`;
+      else if(step === 2) box.innerHTML = `<input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="Code"><button class="btn-p" onclick="verifyCode()">Verify</button>`;
+      else box.innerHTML = `<input type="password" id="r-pass" class="input-box" placeholder="New Password"><button class="btn-p" onclick="finishReg()">Complete</button>`;
     }
   }
-  renderFields();
+  renderAuth();
 
-  window.sendCode = async () => { _code = Math.floor(100000 + Math.random() * 900000).toString(); await fetch('https://server-roan-omega.vercel.app/send-code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email: document.getElementById('r-email').value, code: _code }) }); renderFields(2); };
-  window.verify = () => { if(document.getElementById('r-code').value === _code) renderFields(3); };
+  window.sendRegCode = async () => {
+    const email = document.getElementById('r-email').value;
+    if(!email.includes('@')) return notify("Invalid email");
+    _code = Math.floor(100000 + Math.random() * 900000).toString();
+    await fetch('https://server-roan-omega.vercel.app/send-code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email, code: _code }) });
+    renderAuth(2);
+  };
+
+  window.verifyCode = () => { if(document.getElementById('r-code').value === _code) renderAuth(3); else notify("Wrong code"); };
 
   window.finishReg = async () => {
     const email = document.getElementById('r-email').value, pass = document.getElementById('r-pass').value;
-    const user = { name: "User", nick: "", password: pass, av: "", status: "online" };
+    const user = { name: "User", nick: "", password: pass, status: "online", time: Date.now() };
     await setDoc(doc(db, "users", email), user);
-    _me = { ...user, email }; enter();
+    _me = { ...user, email };
+    saveSession(); enterApp();
   };
 
   window.doLogin = async () => {
     const m = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
     const s = await getDoc(doc(db, "users", m));
-    if(s.exists() && s.data().password === p) { _me = { ...s.data(), email: m }; enter(); }
+    if(s.exists() && s.data().password === p) {
+        _me = { ...s.data(), email: m };
+        saveSession(); enterApp();
+    } else notify("Auth failed");
   };
 
-  function enter() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-screen').style.display = 'flex'; updateUI(); }
-  function updateUI() {
-    document.getElementById('prof-name').innerText = _me.name; document.getElementById('val-name').innerText = _me.name;
-    document.getElementById('val-email').innerText = _me.email; document.getElementById('val-tag').innerText = _me.nick ? "@"+_me.nick : "Не задан";
-    lucide.createIcons();
+  function saveSession() {
+    localStorage.setItem('hate_me_session', JSON.stringify({ email: _me.email, time: Date.now() }));
   }
 
-  window.openSet = () => document.getElementById('settings').style.display = 'flex';
-  window.closeSet = () => document.getElementById('settings').style.display = 'none';
+  function enterApp() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'flex';
+    updateInfo();
+  }
 
-  window.editField = async (t) => {
-    let v = prompt("Введите значение:"); if(!v) return;
-    let up = {}; if(t === 'name') up.name = v;
-    else { v = v.replace('@','').toLowerCase(); if(v.length < 5) return alert("Мин. 5 символов"); up.nick = v; }
-    await updateDoc(doc(db, "users", _me.email), up); Object.assign(_me, up); updateUI();
+  function updateInfo() {
+    document.getElementById('s-name').innerText = _me.name;
+    document.getElementById('s-email').innerText = _me.email;
+    document.getElementById('s-nick').innerText = _me.nick ? "@" + _me.nick : "set tag";
+    updateIcons();
+  }
+
+  // НАСТРОЙКИ
+  window.toggleSettings = () => {
+    const p = document.getElementById('settings-panel');
+    p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
   };
 
-  // ИСПРАВЛЕННЫЙ ПОИСК
+  window.changeField = async (type) => {
+    const val = prompt(type === 'name' ? "Enter new name" : "Enter @tag (min 5, latin)");
+    if(!val) return;
+    let up = {};
+    if(type === 'name') up.name = val;
+    else {
+        const clean = val.replace('@','').toLowerCase().trim();
+        if(clean.length < 5) return notify("Too short");
+        const q = query(collection(db, "users"), where("nick", "==", clean));
+        const s = await getDocs(q);
+        if(!s.empty && clean !== _me.nick) return notify("Tag taken");
+        up.nick = clean;
+    }
+    await updateDoc(doc(db, "users", _me.email), up);
+    Object.assign(_me, up);
+    updateInfo();
+    notify("Profile updated");
+  };
+
+  // ПОИСК
   document.getElementById('find').addEventListener('keypress', async (e) => {
     if(e.key === 'Enter') {
-      const val = e.target.value.replace('@','').toLowerCase().trim();
-      const q = query(collection(db, "users"), where("nick", "==", val));
+      const v = e.target.value.replace('@','').toLowerCase().trim();
+      const q = query(collection(db, "users"), where("nick", "==", v));
       const s = await getDocs(q);
       const list = document.getElementById('contacts');
       list.innerHTML = "";
-      if(s.empty) return alert("Юзер не найден");
+      if(s.empty) return notify("Not found");
       s.forEach(d => {
-        const u = d.data(); if(d.id === _me.email) return;
-        const item = document.createElement('div');
-        item.className = "contact-item anim-enter";
-        item.innerHTML = `<div style="width:40px;height:40px;border-radius:50%;background:#222"></div><div><b>${u.name}</b><div style="font-size:11px;color:var(--t3)">@${u.nick}</div></div>`;
-        item.onclick = () => openChat(u, d.id);
-        list.appendChild(item);
+        if(d.id === _me.email) return;
+        const u = d.data();
+        const div = document.createElement('div');
+        div.className = "contact-item anim-fade";
+        div.innerHTML = `<div style="width:45px;height:45px;border-radius:50%;background:#222"></div><div><b>${u.name}</b><div style="font-size:11px;color:var(--t3)">@${u.nick}</div></div>`;
+        div.onclick = () => openChat(u, d.id);
+        list.appendChild(div);
       });
     }
   });
 
   function openChat(user, email) {
-    if(!_me.nick) return alert("Сначала создай свой @tag в настройках!");
+    if(!_me.nick) return notify("Set your @tag first!");
     _to = { ...user, email };
-    document.getElementById('input-ui').classList.remove('hidden');
-    loadMsgs();
+    document.getElementById('chat-header').classList.remove('hidden');
+    document.getElementById('input-bar').classList.remove('hidden');
+    document.getElementById('chat-title').innerText = user.name;
+    
+    if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hide');
+    loadMessages();
   }
 
-  function loadMsgs() {
+  window.closeChatMobile = () => document.getElementById('sidebar').classList.remove('hide');
+
+  function loadMessages() {
     if(_sub) _sub();
-    const chatID = [_me.email, _to.email].sort().join('_');
-    _sub = onSnapshot(collection(db, "chats", chatID, "messages"), (s) => {
+    const id = [_me.email, _to.email].sort().join('_');
+    _sub = onSnapshot(collection(db, "chats", id, "messages"), (s) => {
       const box = document.getElementById('messages'); box.innerHTML = "";
       let ms = []; s.forEach(d => ms.push(d.data()));
       ms.sort((a,b) => a.time - b.time).forEach(m => {
         const d = document.createElement('div');
-        d.className = `bubble ${m.from === _me.email ? 'me' : 'to'}`;
+        d.className = `bubble anim-fade ${m.from === _me.email ? 'me' : 'to'}`;
         d.innerText = m.text; box.appendChild(d);
       });
       box.scrollTop = box.scrollHeight;
     });
   }
 
-  window.send = async () => {
-    const t = document.getElementById('msg-t'); if(!t.value.trim()) return;
-    const chatID = [_me.email, _to.email].sort().join('_');
-    await addDoc(collection(db, "chats", chatID, "messages"), { from: _me.email, text: t.value, time: Date.now() });
-    t.value = "";
+  window.sendMsg = async () => {
+    const inp = document.getElementById('msg-input');
+    if(!inp.value.trim()) return;
+    const id = [_me.email, _to.email].sort().join('_');
+    await addDoc(collection(db, "chats", id, "messages"), { from: _me.email, text: inp.value, time: Date.now() });
+    inp.value = "";
+  };
+
+  window.logout = () => {
+    localStorage.removeItem('hate_me_session');
+    location.reload();
   };
 </script>
 </body>
