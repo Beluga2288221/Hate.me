@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>Hate Me</title>
 
-<script src="https://smtpjs.com/v3/smtp.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
@@ -18,10 +17,11 @@
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
   body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
 
-  /* --- АНИМАЦИИ --- */
+  /* --- ТВОИ ОРИГИНАЛЬНЫЕ АНИМАЦИИ --- */
   @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes slideRight { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
   .anim-fade { animation: fadeIn 0.6s ease; }
   .anim-slide { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -33,29 +33,63 @@
   .logo-main .me { color: #fff; margin-left: 55px; }
 
   /* --- АВТОРИЗАЦИЯ --- */
-  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: 0.8s; }
-  .auth-card { width: 100%; max-width: 400px; background: var(--s1); border: 1px solid var(--bd); border-radius: 32px; overflow: hidden; }
+  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+  .auth-card { width: 100%; max-width: 400px; background: var(--s1); border: 1px solid var(--bd); border-radius: 32px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
   .auth-nav { display: flex; border-bottom: 1px solid var(--bd); }
-  .auth-nav button { flex: 1; padding: 22px; background: none; border: none; color: var(--t3); font-weight: 700; cursor: pointer; }
+  .auth-nav button { flex: 1; padding: 22px; background: none; border: none; color: var(--t3); font-weight: 700; cursor: pointer; transition: 0.3s; }
   .auth-nav button.active { color: #fff; background: rgba(255,255,255,0.03); }
-  .auth-body { padding: 40px; min-height: 320px; }
+  .auth-body { padding: 40px; min-height: 320px; position: relative; }
   .auth-step { display: none; }
   .auth-step.active { display: block; animation: slideUp 0.4s ease forwards; }
 
   /* --- ПРИЛОЖЕНИЕ --- */
-  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transform: scale(1.1); transition: 0.8s; }
+  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transform: scale(1.1); transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
   #app-screen.visible { display: flex; opacity: 1; transform: scale(1); }
   
   .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
-  .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; transition: 0.3s; }
-  .btn-main:hover { transform: translateY(-3px); }
+  
+  .search-wrapper { padding: 0 25px 15px; }
+  .search-input { 
+    width: 100%; background: var(--s2); border: 1px solid var(--bd); 
+    padding: 14px 18px; border-radius: 14px; color: #fff; font-size: 14px;
+    transition: all 0.3s;
+  }
+  .search-input:focus { border-color: #555; background: #1c1c1c; transform: translateY(-2px); }
 
-  /* Настройки */
-  #settings-modal { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; padding: 30px; }
-  #settings-modal.active { display: flex; }
-  .input-group { margin-bottom: 22px; }
-  .input-group label { display: block; font-size: 10px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
-  .input-group input, .input-group textarea { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; border-radius: 16px; color: #fff; }
+  #settings-modal { 
+    position: absolute; inset: 0; background: var(--bg); z-index: 100; 
+    display: none; flex-direction: column; padding: 30px; 
+    transition: 0.5s; backdrop-filter: blur(10px);
+  }
+  #settings-modal.active { display: flex; animation: fadeIn 0.4s ease; }
+
+  .avatar-edit { 
+    width: 110px; height: 110px; border-radius: 35px; background: var(--s2); 
+    margin: 0 auto 30px; cursor: pointer; overflow: hidden; border: 1px solid var(--bd);
+    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .avatar-edit img { width: 100%; height: 100%; object-fit: cover; }
+
+  .input-group { margin-bottom: 22px; transition: 0.3s; }
+  .input-group label { display: block; font-size: 10px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: 1px; }
+  .input-group input, .input-group textarea { 
+    width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; 
+    border-radius: 16px; color: #fff; font-family: inherit; transition: 0.3s;
+  }
+
+  .btn-main { 
+    width: 100%; padding: 18px; border-radius: 16px; border: none; 
+    background: var(--acc); color: #000; font-weight: 700; cursor: pointer; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+  }
+  .btn-main:hover { transform: translateY(-3px); }
+  .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  .prof-box { 
+    padding: 20px; border-top: 1px solid var(--bd); background: #0c0c0c; 
+    display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s;
+  }
+  .my-av { width: 44px; height: 44px; border-radius: 14px; background: var(--s2); object-fit: cover; }
 </style>
 </head>
 <body>
@@ -77,15 +111,15 @@
         </div>
         <div id="step-reg-1" class="auth-step">
             <div class="input-group"><label>Электронная почта</label><input type="email" id="r-email" placeholder="email@example.com"></div>
-            <button class="btn-main" onclick="sendCode()">Получить код</button>
+            <button class="btn-main" id="btn-get-code" onclick="sendCode()">Получить код</button>
         </div>
         <div id="step-reg-2" class="auth-step">
-            <div class="input-group"><label>Код из письма</label><input type="text" id="r-code" maxlength="6" placeholder="000 000" style="text-align:center; letter-spacing:5px; font-size:20px;"></div>
+            <div class="input-group"><label>Код из письма</label><input type="text" id="r-code" maxlength="6" placeholder="000000" style="text-align:center; letter-spacing:8px; font-size:20px;"></div>
             <button class="btn-main" onclick="verifyCode()">Подтвердить</button>
         </div>
         <div id="step-reg-3" class="auth-step">
             <div class="input-group"><label>Придумайте пароль</label><input type="password" id="r-pass" placeholder="••••••••"></div>
-            <button class="btn-main" onclick="registerUser()">Создать аккаунт</button>
+            <button class="btn-main" id="btn-final-reg" onclick="registerUser()">Создать аккаунт</button>
         </div>
     </div>
   </div>
@@ -97,33 +131,45 @@
         <div style="font-weight:700; font-size:22px; letter-spacing:-1px;">Hate Me</div>
         <button onclick="toggleSettings(true)" style="background:none; border:none; color:var(--t3); cursor:pointer;"><i data-lucide="settings"></i></button>
     </div>
-    <div id="chatList" style="flex:1;"></div>
-    <div class="prof-box" style="padding:20px; border-top:1px solid var(--bd); display:flex; align-items:center; gap:12px;">
-        <div id="ui-nick" style="font-weight:700;">@username</div>
+    <div class="search-wrapper"><input type="text" class="search-input" id="global-search" placeholder="Поиск по юзерам (Enter)..."></div>
+    <div style="flex:1; overflow-y:auto;" id="chatList"></div>
+    <div class="prof-box" onclick="toggleSettings(true)">
+        <img src="" id="ui-av" class="my-av" style="display:none">
+        <div id="av-stub" style="width:44px; height:44px; border-radius:14px; background:#222; display:flex; align-items:center; justify-content:center;"><i data-lucide="user"></i></div>
+        <div style="flex:1">
+            <div id="ui-nick" style="font-weight:700; font-size:14px;">@username</div>
+            <div id="ui-id" style="color:var(--t3); font-size:10px;">Hate ID: 0000000000</div>
+        </div>
     </div>
   </aside>
-  <main style="flex:1; display:flex; align-items:center; justify-content:center;">
+  <main style="flex:1; position:relative; display:flex; align-items:center; justify-content:center; color:var(--t3);">
     <div id="settings-modal">
-        <button onclick="toggleSettings(false)" style="color:#fff; background:none; border:none; margin-bottom:20px; cursor:pointer;">Назад</button>
+        <div style="display:flex; align-items:center; gap:20px; margin-bottom:40px;">
+            <button onclick="toggleSettings(false)" style="background:none; border:none; color:#fff; cursor:pointer;"><i data-lucide="arrow-left"></i></button>
+            <h2 style="font-size:20px;">Профиль</h2>
+        </div>
+        <div class="avatar-edit" onclick="document.getElementById('f-in').click()">
+            <img id="set-av-pre" src="">
+            <input type="file" id="f-in" hidden accept="image/*" onchange="previewAv(this)">
+        </div>
         <div class="input-group"><label>Никнейм</label><input type="text" id="set-user"></div>
+        <div class="input-group"><label>О себе</label><textarea id="set-bio" rows="3"></textarea></div>
         <button class="btn-main" onclick="saveData()">Сохранить</button>
     </div>
-    <div style="color:var(--t3);">Выберите чат</div>
+    <div class="anim-fade" id="chat-placeholder">Выберите чат, чтобы начать общение</div>
   </main>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  // Используем твои настройки из Weed Help
   const firebaseConfig = {
-    apiKey: "AIzaSyCVcSmwPF6XPup8L9AO-mmP3qQpXGO697w",
-    authDomain: "weed-messenger-8200e.firebaseapp.com",
-    projectId: "weed-messenger-8200e",
-    storageBucket: "weed-messenger-8200e.firebasestorage.app",
-    messagingSenderId: "165427827145",
-    appId: "1:165427827145:web:a9fac6fec1b87f226e1818"
+    apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
+    authDomain: "hate-24365.firebaseapp.com",
+    projectId: "hate-24365",
+    storageBucket: "hate-24365.firebasestorage.app",
+    appId: "1:990484802574:web:56e00d91e1e58df144a05f"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -140,78 +186,165 @@
     document.getElementById(t==='login' ? 'step-login' : 'step-reg-1').classList.add('active');
   };
 
-  window.sendCode = function() {
+  window.nextStep = (n) => {
+    document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+    const step = document.getElementById('step-reg-'+n);
+    if(step) step.classList.add('active');
+  };
+
+  // ОБНОВЛЕННАЯ ФУНКЦИЯ: Работает с твоим Python-сервером
+  window.sendCode = async function() {
     const email = document.getElementById('r-email').value;
-    if(!email.includes('@')) return alert("Email!");
+    if(!email || !email.includes('@')) return alert("Введите корректный Email!");
     
     tempGeneratedCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("DEBUG CODE:", tempGeneratedCode);
-    
-    document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-    document.getElementById('step-reg-2').classList.add('active');
+    console.log("Код сгенерирован:", tempGeneratedCode);
 
-    // Исправленный блок отправки (защита от Email is not defined)
-    if (window.Email) {
-        Email.send({
-            Host : "smtp.gmail.com",
-            Username : "weed.help.com@gmail.com",
-            Password : "kgls dioz pxwk mtha", // Твой последний пароль приложения
-            To : email,
-            From : "weed.help.com@gmail.com",
-            Subject : "Hate Me Code",
-            Body : "Твой код: " + tempGeneratedCode
+    try {
+        const response = await fetch('http://localhost:5000/send-code', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email: email, code: tempGeneratedCode })
         });
+
+        if(response.ok) {
+            nextStep(2); // Переход на ввод кода только при успехе
+        } else {
+            alert("Ошибка сервера Python! Проверь его консоль.");
+        }
+    } catch (e) {
+        alert("Забыл запустить сервер? Сначала запусти python server.py");
     }
   };
 
   window.verifyCode = () => {
-    if(document.getElementById('r-code').value.trim() === tempGeneratedCode) {
-        document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-        document.getElementById('step-reg-3').classList.add('active');
-    } else alert("Bad code");
+    const val = document.getElementById('r-code').value.trim();
+    if(val === tempGeneratedCode) {
+        nextStep(3);
+    } else alert("Неверный код!");
   };
 
   window.registerUser = async () => {
     const email = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
-    const hateID = Math.floor(Math.random() * 1000000000);
+    const btn = document.getElementById('btn-final-reg');
+    const hateID = Math.floor(1000000000 + Math.random() * 9000000000);
 
-    await setDoc(doc(db, "users", email), {
-        nick: email.split('@')[0],
-        id: hateID,
-        password: pass
-    });
-    currentUserEmail = email;
-    showApp(email.split('@')[0], hateID);
+    if(pass.length < 6) return alert("Пароль должен быть от 6 символов");
+    btn.disabled = true;
+
+    try {
+        await setDoc(doc(db, "users", email), {
+            nick: email.split('@')[0],
+            id: hateID,
+            password: pass,
+            bio: "",
+            av: ""
+        });
+        currentUserEmail = email;
+        showApp(email.split('@')[0], hateID);
+    } catch (e) { 
+        alert("Ошибка регистрации!"); 
+        btn.disabled = false;
+    }
   };
 
   window.loginUser = async () => {
     const email = document.getElementById('l-email').value;
     const pass = document.getElementById('l-pass').value;
-    const snap = await getDoc(doc(db, "users", email));
-    
-    if(snap.exists() && snap.data().password === pass) {
-        currentUserEmail = email;
-        showApp(snap.data().nick, snap.data().id);
-    } else alert("Ошибка!");
+    try {
+        const snap = await getDoc(doc(db, "users", email));
+        if(snap.exists() && snap.data().password === pass) {
+            currentUserEmail = email;
+            showApp(snap.data().nick, snap.data().id, snap.data().av, snap.data().bio);
+        } else alert("Неверные данные!");
+    } catch(e) { alert("Ошибка входа!"); }
   };
 
-  function showApp(nick, id) {
+  window.saveData = async () => {
+    const newNick = document.getElementById('set-user').value;
+    const newBio = document.getElementById('set-bio').value;
+    const avImg = document.getElementById('set-av-pre').src;
+
+    try {
+        await setDoc(doc(db, "users", currentUserEmail), {
+            nick: newNick,
+            bio: newBio,
+            av: avImg.startsWith('data') ? avImg : ""
+        }, { merge: true });
+        
+        document.getElementById('ui-nick').innerText = "@" + newNick;
+        if(avImg.startsWith('data')) {
+            document.getElementById('ui-av').src = avImg;
+            document.getElementById('ui-av').style.display = 'block';
+            document.getElementById('av-stub').style.display = 'none';
+        }
+        toggleSettings(false);
+        alert("Профиль обновлен!");
+    } catch(e) { alert("Ошибка сохранения!"); }
+  };
+
+  function showApp(nick, id, av = "", bio = "") {
     document.getElementById('ui-nick').innerText = "@" + nick;
-    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('ui-id').innerText = "Hate ID: " + id;
+    document.getElementById('set-user').value = nick;
+    document.getElementById('set-bio').value = bio;
+    if(av) {
+        document.getElementById('ui-av').src = av;
+        document.getElementById('ui-av').style.display = 'block';
+        document.getElementById('av-stub').style.display = 'none';
+        document.getElementById('set-av-pre').src = av;
+    }
+    const auth = document.getElementById('auth-screen');
     const appS = document.getElementById('app-screen');
-    appS.style.display = 'flex';
-    setTimeout(() => appS.classList.add('visible'), 50);
+    auth.style.opacity = '0';
+    setTimeout(() => {
+        auth.style.display = 'none';
+        appS.style.display = 'flex';
+        setTimeout(() => appS.classList.add('visible'), 50);
+        lucide.createIcons();
+    }, 600);
   }
 
   window.toggleSettings = (s) => document.getElementById('settings-modal').classList.toggle('active', s);
   
-  window.saveData = async () => {
-    const nick = document.getElementById('set-user').value;
-    await setDoc(doc(db, "users", currentUserEmail), { nick }, { merge: true });
-    document.getElementById('ui-nick').innerText = "@" + nick;
-    toggleSettings(false);
+  window.previewAv = (input) => {
+    if(input.files && input.files[0]) {
+        const r = new FileReader();
+        r.onload = (e) => document.getElementById('set-av-pre').src = e.target.result;
+        r.readAsDataURL(input.files[0]);
+    }
   };
+
+  document.getElementById('global-search').addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') {
+        const val = e.target.value.trim();
+        if(!val) return;
+        const chatList = document.getElementById('chatList');
+        chatList.innerHTML = "<div style='padding:20px; color:gray;'>Поиск...</div>";
+        try {
+            const q = query(collection(db, "users"), where("id", "==", parseInt(val)));
+            const snap = await getDocs(q);
+            chatList.innerHTML = "";
+            if(snap.empty) chatList.innerHTML = "<div style='padding:20px; color:gray;'>Никого не нашли</div>";
+            snap.forEach(doc => {
+                const u = doc.data();
+                const div = document.createElement('div');
+                div.className = 'prof-box anim-fade';
+                div.innerHTML = `
+                    <div style=\"width:40px; height:40px; border-radius:12px; background:#222; display:flex; align-items:center; justify-content:center; overflow:hidden;\">
+                        ${u.av ? `<img src=\"${u.av}\" style=\"width:100%;height:100%;object-fit:cover;\">` : `<i data-lucide=\"user\"></i>`}
+                    </div>
+                    <div>
+                        <div style=\"font-weight:700; font-size:14px;\">@${u.nick}</div>
+                        <div style=\"font-size:10px; color:var(--t3);\">Hate ID: ${u.id}</div>
+                    </div>`;
+                chatList.appendChild(div);
+            });
+            lucide.createIcons();
+        } catch(err) { console.error(err); }
+    }
+  });
 </script>
 </body>
 </html>
