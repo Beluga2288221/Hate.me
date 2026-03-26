@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
-<title>Hate Me</title>
+<title>Hate Me | Secure</title>
 <script src="https://unpkg.com/lucide@latest"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
@@ -141,7 +141,6 @@
     </div>
     <select id="create-type" class="input-box"><option value="group">Группа</option><option value="channel">Канал</option></select>
     <input type="text" id="create-name" class="input-box" placeholder="Название">
-    <input type="text" id="create-members" class="input-box" placeholder="Участники (@user1, @user2)">
     <button class="btn-p" onclick="processCreate()">Создать</button>
   </div>
 </div>
@@ -162,50 +161,47 @@
   const NVS = () => {
     if(document.getElementById('hp-field').value !== "") return false;
     const now = Date.now();
-    if (now - _vcl < 1000) return false;
+    if (now - _vcl < 800) return false;
     _vcl = now; return true;
   };
 
-  const clean = (str) => str.replace(/[<>]/g, "").trim();
-
+  const clean = (s) => s ? s.toString().replace(/[<>]/g, "").trim() : "";
   const notify = (t) => { const el = document.getElementById('toast'); el.textContent = t; el.style.display = 'block'; setTimeout(() => el.style.display='none', 3000); };
   const updateIcons = () => lucide.createIcons();
 
-  window.onload = async () => {
-    const saved = localStorage.getItem('hate_session');
-    if(saved) {
-        try {
-            const data = JSON.parse(saved);
-            const s = await getDoc(doc(db, "users", data.email));
-            if(s.exists()) { _me = { ...s.data(), email: data.email }; enterApp(); }
-        } catch(e) { localStorage.removeItem('hate_session'); }
-    }
-  };
-
   window.setAuth = (m) => { _mode = m; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 't-'+m)); renderAuth(); };
-  function renderAuth(step = 1) {
+  
+  window.renderAuth = (step = 1) => {
     const box = document.getElementById('auth-fields');
-    if(_mode === 'login') box.innerHTML = `<div style="padding:25px"><input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="doLogin()">Войти</button></div>`;
-    else {
+    if(_mode === 'login') {
+      box.innerHTML = `<div style="padding:25px"><input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="doLogin()">Войти</button></div>`;
+    } else {
       if(step === 1) box.innerHTML = `<div style="padding:25px"><input type="email" id="r-email" class="input-box" placeholder="Email"><button class="btn-p" onclick="sendCode()">Код</button></div>`;
       else if(step === 2) box.innerHTML = `<div style="padding:25px"><input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="Код"><button class="btn-p" onclick="verify()">Ок</button></div>`;
       else box.innerHTML = `<div style="padding:25px"><input type="password" id="r-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="finishReg()">Готово</button></div>`;
     }
-  }
-  renderAuth();
+  };
+
+  window.doLogin = async () => {
+    if(!NVS()) return;
+    const email = clean(document.getElementById('l-email').value);
+    const pass = document.getElementById('l-pass').value;
+    if(!email || !pass) return notify("Заполни поля");
+    const s = await getDoc(doc(db, "users", email));
+    if(s.exists() && s.data().password === pass) {
+      _me = { ...s.data(), email }; enterApp();
+    } else notify("Неверные данные");
+  };
 
   window.sendCode = async () => {
     if(!NVS()) return;
     const email = clean(document.getElementById('r-email').value);
+    if(!email) return notify("Введите email");
     _code = Math.floor(100000 + Math.random() * 900000).toString();
     try {
-      await fetch('https://server-roan-omega.vercel.app/send-code', { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ email, code: _code }) 
-      });
+      await fetch('https://server-roan-omega.vercel.app/send-code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email, code: _code }) });
       renderAuth(2);
-    } catch(e) { notify("Ошибка сервера"); }
+    } catch(e) { notify("Ошибка отправки"); }
   };
 
   window.verify = () => { if(document.getElementById('r-code').value === _code) renderAuth(3); else notify("Неверно"); };
@@ -213,16 +209,9 @@
   window.finishReg = async () => {
     if(!NVS()) return;
     const email = clean(document.getElementById('r-email').value), pass = document.getElementById('r-pass').value;
-    const user = { name: "User", nick: "", bio: "hate hate hate...", password: pass, myChats: [], av: "", devices: ["Web Portal"], created: serverTimestamp() };
+    const user = { name: "User", nick: "", bio: "hate hate hate...", password: pass, myChats: [], av: "", devices: ["Web Portal"] };
     await setDoc(doc(db, "users", email), user);
     _me = { ...user, email }; enterApp();
-  };
-
-  window.doLogin = async () => {
-    if(!NVS()) return;
-    const m = clean(document.getElementById('l-email').value), p = document.getElementById('l-pass').value;
-    const s = await getDoc(doc(db, "users", m));
-    if(s.exists() && s.data().password === p) { _me = { ...s.data(), email: m }; enterApp(); } else notify("Ошибка входа");
   };
 
   function enterApp() {
@@ -237,25 +226,20 @@
     document.getElementById('s-nick').textContent = _me.nick ? "@" + _me.nick : "не задан";
     document.getElementById('s-email').textContent = _me.email;
     document.getElementById('s-bio').textContent = _me.bio || "О себе";
-    const dev = window.innerWidth < 768 ? "Mobile App Interface" : "Desktop Web Portal";
-    document.getElementById('s-device').textContent = dev;
+    document.getElementById('s-device').textContent = window.innerWidth < 768 ? "Mobile App" : "Desktop Web";
     if(_me.av) document.getElementById('my-av-img').src = _me.av;
     updateIcons();
   }
 
   window.uploadAv = (input) => {
-    const file = input.files[0]; if(!file || file.size > 1000000) return notify("Файл слишком велик");
+    const file = input.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onloadend = async () => {
-        const canvas = document.createElement('canvas');
-        const img = new Image(); img.src = reader.result;
+        const canvas = document.createElement('canvas'); const img = new Image(); img.src = reader.result;
         img.onload = async () => {
-            canvas.width = 200; canvas.height = 200;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, 200, 200);
-            const data = canvas.toDataURL('image/jpeg', 0.5);
-            await updateDoc(doc(db, "users", _me.email), { av: data });
-            _me.av = data; updateInfo();
+            canvas.width = 200; canvas.height = 200; const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, 200, 200); const data = canvas.toDataURL('image/jpeg', 0.5);
+            await updateDoc(doc(db, "users", _me.email), { av: data }); _me.av = data; updateInfo();
         };
     };
     reader.readAsDataURL(file);
@@ -289,24 +273,22 @@
             if(!s.exists()) continue;
             const d = s.data();
             const div = document.createElement('div'); div.className = "contact-item";
-            const av = d.av ? `<img src="${d.av}" class="av-main">` : `<div class="av-main" style="background:#222">${clean(d.name[0])}</div>`;
-            div.innerHTML = `${av}<div><b class="nick-render"></b><div style="font-size:11px;color:var(--t3)" class="sub-render"></div></div>`;
-            div.querySelector('.nick-render').textContent = d.name;
-            div.querySelector('.sub-render').textContent = item.type === 'group' ? (d.type === 'group' ? 'Группа' : 'Канал') : "@" + d.nick;
+            const avStr = d.av ? `<img src="${d.av}" class="av-main">` : `<div class="av-main" style="background:#222"></div>`;
+            div.innerHTML = `${avStr}<div><b class="n-r"></b><div style="font-size:11px;color:var(--t3)" class="s-r"></div></div>`;
+            div.querySelector('.n-r').textContent = d.name;
+            if(!d.av) div.querySelector('.av-main').textContent = d.name[0];
+            div.querySelector('.s-r').textContent = item.type === 'group' ? 'Группа' : "@" + d.nick;
             div.onclick = () => openChat(item); list.appendChild(div);
         }
     });
   }
 
   window.openChat = async (item) => {
-    _to = item;
-    const s = await getDoc(doc(db, item.type === 'group' ? "groups" : "users", item.id));
-    const d = s.data();
+    _to = item; const s = await getDoc(doc(db, item.type === 'group' ? "groups" : "users", item.id)); const d = s.data();
     document.getElementById('chat-header').classList.remove('hidden');
     document.getElementById('input-bar').classList.remove('hidden');
     document.getElementById('chat-title').textContent = d.name;
     document.getElementById('chat-av-box').innerHTML = d.av ? `<img src="${d.av}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : clean(d.name[0]);
-    if(item.type === 'group' && d.type === 'channel' && d.creator !== _me.email) document.getElementById('input-bar').classList.add('hidden');
     if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hide');
     loadMsgs();
   };
@@ -327,8 +309,7 @@
 
   window.sendMsg = async () => {
     if(!NVS()) return;
-    const inp = document.getElementById('msg-input');
-    const val = clean(inp.value); if(!val) return;
+    const inp = document.getElementById('msg-input'); const val = clean(inp.value); if(!val) return;
     const path = _to.type === 'group' ? `groups/${_to.id}/messages` : `chats/${[_me.email, _to.id].sort().join('_')}/messages`;
     if(_to.type !== 'group') {
         await updateDoc(doc(db, "users", _me.email), { myChats: arrayUnion({ id: _to.id, type: 'direct' }) });
@@ -341,14 +322,23 @@
   document.getElementById('find').addEventListener('keypress', async (e) => {
     if(e.key === 'Enter') {
       const v = clean(e.target.value.replace('@','').toLowerCase());
-      const q = query(collection(db, "users"), where("nick", "==", v));
-      const s = await getDocs(q);
+      const s = await getDocs(query(collection(db, "users"), where("nick", "==", v)));
       s.forEach(d => { if(d.id !== _me.email) openChat({ id: d.id, type: 'direct' }); });
     }
   });
 
   window.closeChatMobile = () => document.getElementById('sidebar').classList.remove('hide');
   window.logout = () => { localStorage.removeItem('hate_session'); location.reload(); };
+
+  window.onload = async () => {
+    renderAuth();
+    const saved = localStorage.getItem('hate_session');
+    if(saved) {
+        const data = JSON.parse(saved);
+        const s = await getDoc(doc(db, "users", data.email));
+        if(s.exists()) { _me = { ...s.data(), email: data.email }; enterApp(); }
+    }
+  };
 </script>
 </body>
 </html>
