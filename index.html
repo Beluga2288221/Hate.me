@@ -32,13 +32,15 @@
   .input-group { margin-bottom: 22px; }
   .input-group label { display: block; font-size: 10px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
   .input-group input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; border-radius: 16px; color: #fff; font-size: 14px; }
-  #reg-error { color: var(--err); font-size: 11px; margin-top: -15px; margin-bottom: 15px; display: none; }
+  #reg-err { color: var(--err); font-size: 11px; margin-top: -15px; margin-bottom: 15px; display: none; }
   .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; }
   .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; }
   #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transition: 0.8s; }
   #app-screen.visible { display: flex; opacity: 1; }
   .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
-  .prof-box { padding: 20px; border-top: 1px solid var(--bd); background: #0c0c0c; display: flex; align-items: center; gap: 12px; }
+  .search-wrapper { padding: 0 25px 15px; }
+  .search-input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 14px 18px; border-radius: 14px; color: #fff; font-size: 14px; }
+  .prof-box { padding: 20px; border-top: 1px solid var(--bd); background: #0c0c0c; display: flex; align-items: center; gap: 12px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -46,27 +48,27 @@
   <div class="logo-container"><div class="logo-main"><span class="hate">Hate</span><span class="me">Me</span></div></div>
   <div class="auth-card anim-slide">
     <div class="auth-nav">
-        <button id="tab-login" class="active" onclick="switchAuth('login')">ВХОД</button>
-        <button id="tab-reg" onclick="switchAuth('reg')">РЕГИСТРАЦИЯ</button>
+        <button id="t-login" class="active" onclick="tab('login')">ВХОД</button>
+        <button id="t-reg" onclick="tab('reg')">РЕГИСТРАЦИЯ</button>
     </div>
     <div class="auth-body">
-        <div id="step-login" class="auth-step active">
+        <div id="s-login" class="auth-step active">
             <div class="input-group"><label>Email</label><input type="email" id="l-email" placeholder="mail@hate.me"></div>
             <div class="input-group"><label>Пароль</label><input type="password" id="l-pass" placeholder="••••••••"></div>
-            <button class="btn-main" onclick="loginUser()">Войти</button>
+            <button class="btn-main" onclick="doLogin()">Войти</button>
         </div>
-        <div id="step-reg-1" class="auth-step">
-            <div class="input-group"><label>Электронная почта</label><input type="email" id="r-email" placeholder="email@example.com"></div>
-            <div id="reg-error">Эта почта уже зарегистрирована</div>
-            <button class="btn-main" id="btn-get-code" onclick="sendCode()">Получить код</button>
+        <div id="s-reg-1" class="auth-step">
+            <div class="input-group"><label>Email</label><input type="email" id="r-email" placeholder="email@example.com"></div>
+            <div id="reg-err">Эта почта уже занята</div>
+            <button class="btn-main" id="b-code" onclick="getCode()">Получить код</button>
         </div>
-        <div id="step-reg-2" class="auth-step">
-            <div class="input-group"><label>Код из письма</label><input type="text" id="r-code" maxlength="6" placeholder="000000" style="text-align:center; letter-spacing:8px; font-size:20px;"></div>
-            <button class="btn-main" onclick="verifyCode()">Подтвердить</button>
+        <div id="s-reg-2" class="auth-step">
+            <div class="input-group"><label>Код</label><input type="text" id="r-code" maxlength="6" style="text-align:center; letter-spacing:8px; font-size:20px;"></div>
+            <button class="btn-main" onclick="checkCode()">Подтвердить</button>
         </div>
-        <div id="step-reg-3" class="auth-step">
-            <div class="input-group"><label>Придумайте пароль</label><input type="password" id="r-pass" placeholder="••••••••"></div>
-            <button class="btn-main" onclick="registerUser()">Создать аккаунт</button>
+        <div id="s-reg-3" class="auth-step">
+            <div class="input-group"><label>Пароль</label><input type="password" id="r-pass" placeholder="••••••••"></div>
+            <button class="btn-main" onclick="doReg()">Создать аккаунт</button>
         </div>
     </div>
   </div>
@@ -75,12 +77,13 @@
 <div id="app-screen">
   <aside class="sidebar">
     <div style="padding: 30px 25px;"><h3>Hate Me</h3></div>
-    <div style="flex:1"></div>
+    <div class="search-wrapper"><input type="text" class="search-input" id="search" placeholder="Поиск по ID..."></div>
+    <div style="flex:1; overflow-y:auto;" id="list"></div>
     <div class="prof-box">
         <div style="width:44px; height:44px; border-radius:14px; background:#222; display:flex; align-items:center; justify-content:center;"><i data-lucide="user"></i></div>
         <div style="flex:1">
-            <div id="ui-nick" style="font-weight:700; font-size:14px;">@username</div>
-            <div id="ui-id" style="color:var(--t3); font-size:10px;">Hate ID: 0000000000</div>
+            <div id="u-nick" style="font-weight:700; font-size:14px;">@user</div>
+            <div id="u-id" style="color:var(--t3); font-size:10px;">ID: 0000000000</div>
         </div>
     </div>
   </aside>
@@ -89,9 +92,9 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  const firebaseConfig = {
+  const cfg = {
     apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
     authDomain: "hate-24365.firebaseapp.com",
     projectId: "hate-24365",
@@ -99,90 +102,107 @@
     appId: "1:990484802574:web:56e00d91e1e58df144a05f"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(cfg);
   const db = getFirestore(app);
-  let tempCode = "";
-  let canSend = true;
+  let _code = "", _can = true;
 
   lucide.createIcons();
 
-  window.switchAuth = (t) => {
-    document.getElementById('tab-login').classList.toggle('active', t==='login');
-    document.getElementById('tab-reg').classList.toggle('active', t==='reg');
+  window.tab = (t) => {
+    document.getElementById('t-login').classList.toggle('active', t==='login');
+    document.getElementById('t-reg').classList.toggle('active', t==='reg');
     document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-    document.getElementById(t==='login' ? 'step-login' : 'step-reg-1').classList.add('active');
+    document.getElementById(t==='login' ? 's-login' : 's-reg-1').classList.add('active');
   };
 
-  window.nextStep = (n) => {
+  const step = (n) => {
     document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-    document.getElementById('step-reg-'+n).classList.add('active');
+    document.getElementById('s-reg-'+n).classList.add('active');
   };
 
-  window.sendCode = async () => {
-    if (!canSend) return;
-    const email = document.getElementById('r-email').value;
-    if(!email.includes('@')) return;
+  window.getCode = async () => {
+    if (!_can) return;
+    const mail = document.getElementById('r-email').value;
+    if(!mail.includes('@')) return;
     
-    const err = document.getElementById('reg-error');
-    const btn = document.getElementById('btn-get-code');
-
-    const snap = await getDoc(doc(db, "users", email));
+    const snap = await getDoc(doc(db, "users", mail));
     if (snap.exists()) {
-        err.style.display = 'block';
+        document.getElementById('reg-err').style.display = 'block';
         return;
     }
-    err.style.display = 'none';
+    document.getElementById('reg-err').style.display = 'none';
 
-    canSend = false;
-    tempCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    let time = 30;
-    btn.disabled = true;
+    _can = false;
+    _code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    let t = 30;
+    const b = document.getElementById('b-code');
+    b.disabled = true;
     const timer = setInterval(() => {
-        btn.innerText = `Wait ${time}s`;
-        if (time-- <= 0) {
+        b.innerText = `Wait ${t}s`;
+        if (t-- <= 0) {
             clearInterval(timer);
-            canSend = true; btn.disabled = false; btn.innerText = "Получить код";
+            _can = true; b.disabled = false; b.innerText = "Получить код";
         }
     }, 1000);
 
     fetch('https://server-roan-omega.vercel.app/send-code', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email: email, code: tempCode })
-    }).then(res => { if(res.ok) nextStep(2); });
+        body: JSON.stringify({ email: mail, code: _code })
+    }).then(res => { if(res.ok) step(2); });
   };
 
-  window.verifyCode = () => {
-    if(document.getElementById('r-code').value.trim() === tempCode) nextStep(3);
-    else alert("Wrong code");
+  window.checkCode = () => {
+    if(document.getElementById('r-code').value.trim() === _code) step(3);
+    else alert("Invalid code");
   };
 
-  window.registerUser = async () => {
-    const email = document.getElementById('r-email').value;
+  window.doReg = async () => {
+    const mail = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
     const id = Math.floor(Math.random() * 9000000000);
-    await setDoc(doc(db, "users", email), { nick: email.split('@')[0], password: pass, id: id });
-    showApp(email.split('@')[0], id);
+    await setDoc(doc(db, "users", mail), { nick: mail.split('@')[0], password: pass, id: id });
+    initApp(mail.split('@')[0], id);
   };
 
-  window.loginUser = async () => {
-    const email = document.getElementById('l-email').value;
-    const snap = await getDoc(doc(db, "users", email));
+  window.doLogin = async () => {
+    const mail = document.getElementById('l-email').value;
+    const snap = await getDoc(doc(db, "users", mail));
     if(snap.exists() && snap.data().password === document.getElementById('l-pass').value) {
-        showApp(snap.data().nick, snap.data().id);
+        initApp(snap.data().nick, snap.data().id);
     } else alert("Error");
   };
 
-  function showApp(nick, id) {
-    document.getElementById('ui-nick').innerText = "@" + nick;
-    document.getElementById('ui-id').innerText = "Hate ID: " + id;
+  function initApp(n, i) {
+    document.getElementById('u-nick').innerText = "@" + n;
+    document.getElementById('u-id').innerText = "ID: " + i;
     document.getElementById('auth-screen').style.display = 'none';
-    const appS = document.getElementById('app-screen');
-    appS.style.display = 'flex';
-    setTimeout(() => appS.classList.add('visible'), 50);
+    const a = document.getElementById('app-screen');
+    a.style.display = 'flex';
+    setTimeout(() => a.classList.add('visible'), 50);
     lucide.createIcons();
   }
+
+  document.getElementById('search').addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') {
+        const v = e.target.value.trim();
+        if(!v) return;
+        const l = document.getElementById('list');
+        l.innerHTML = "<div style='padding:20px; color:gray; font-size:12px;'>Searching...</div>";
+        const qy = query(collection(db, "users"), where("id", "==", parseInt(v)));
+        const s = await getDocs(qy);
+        l.innerHTML = "";
+        if(s.empty) { l.innerHTML = "<div style='padding:20px; color:gray; font-size:12px;'>Not found</div>"; return; }
+        s.forEach(d => {
+            const u = d.data();
+            const el = document.createElement('div');
+            el.className = 'prof-box';
+            el.innerHTML = `<div>@${u.nick}</div><div style="font-size:10px;color:gray">ID: ${u.id}</div>`;
+            l.appendChild(el);
+        });
+    }
+  });
 </script>
 </body>
 </html>
