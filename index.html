@@ -4,72 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hate Me</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root { 
             --bg: #030303; --card: #0a0a0a; --t1: #ffffff; --t3: #555; 
-            --acc: #ffffff; --bd: rgba(255,255,255,0.08); --blur: blur(25px);
+            --acc: #ffffff; --bd: rgba(255,255,255,0.08);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-        body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
 
-        /* Экраны */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #app-screen { display: none; width: 100%; height: 100%; }
-
-        .auth-box { width: min(90%, 380px); background: var(--card); border-radius: 30px; border: 1px solid var(--bd); padding: 30px; }
-        .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 15px; color: #000; font-size: 14px; margin-bottom: 15px; }
-        .btn-p { width: 100%; padding: 18px; border-radius: 15px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; }
-
-        /* Профиль (как на твоем скрине) */
-        .profile-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 40px 20px; z-index: 1000; }
-        .av-box { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin-bottom: 30px; border: 2px solid var(--bd); }
-        .av-box img { width: 100%; height: 100%; object-fit: cover; }
-        .field-label { font-size: 12px; color: var(--t3); align-self: flex-start; margin: 10px 0 5px 15%; }
-        .field-val { width: 70%; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--bd); margin-bottom: 10px; }
+        /* Контейнер входа */
+        .auth-container { width: min(90%, 360px); text-align: center; }
+        .logo { font-size: 32px; font-weight: 700; margin-bottom: 40px; }
+        .auth-box { background: var(--card); border: 1px solid var(--bd); padding: 30px; border-radius: 24px; }
         
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 12px 24px; border-radius: 12px; display: none; z-index: 5000; font-weight: bold; }
+        .input-group { margin-bottom: 15px; }
+        input { 
+            width: 100%; padding: 16px; border-radius: 12px; border: none; 
+            background: #f0f4f8; color: #000; font-size: 14px; 
+        }
+        
+        .btn-main { 
+            width: 100%; padding: 16px; border-radius: 12px; border: none; 
+            background: #fff; color: #000; font-weight: 700; cursor: pointer; margin-top: 10px;
+        }
+        .btn-sub { background: none; color: #777; font-size: 13px; margin-top: 15px; cursor: pointer; border: none; width: 100%; }
+
+        /* Профиль (скрыт по умолчанию) */
+        #profile-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .avatar { width: 100px; height: 100px; background: #222; border-radius: 50%; margin-bottom: 20px; border: 1px solid var(--bd); overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .info-card { width: 80%; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid var(--bd); margin-bottom: 10px; text-align: left; }
+        .label { font-size: 11px; color: var(--t3); text-transform: uppercase; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="toast"></div>
-
-    <div id="auth-screen">
-        <h1 style="margin-bottom: 30px; font-size: 32px;">Hate Me</h1>
+    <div id="auth-screen" class="auth-container">
+        <div class="logo">Hate Me</div>
         <div class="auth-box">
-            <input type="email" id="email" class="input-box" placeholder="grigoevstas380@gmail.com">
-            <input type="password" id="pass" class="input-box" placeholder="••••••••••••">
-            <button class="btn-p" id="login-btn">Войти</button>
-            <button class="btn-p" id="reg-btn" style="background: none; color: #fff; margin-top: 10px;">Регистрация</button>
+            <div class="input-group"><input type="email" id="email" placeholder="Email"></div>
+            <div class="input-group"><input type="password" id="pass" placeholder="Password"></div>
+            <button class="btn-main" id="login-btn">Войти</button>
+            <button class="btn-sub" id="reg-btn">Нет аккаунта? Регистрация</button>
         </div>
     </div>
 
-    <div id="app-screen">
-        <div class="profile-overlay">
-            <h2 style="margin-bottom: 40px;">Профиль</h2>
-            <div class="av-box"><img id="my-av" src="https://via.placeholder.com/150"></div>
-            
-            <div class="field-label">Имя:</div>
-            <div class="field-val" id="disp-name">x</div>
-            
-            <div class="field-label">Ник:</div>
-            <div class="field-val" id="disp-nick">@imbowii</div>
-            
-            <button class="btn-p" onclick="location.reload()" style="background: rgba(255,0,0,0.1); color: #ff4d4d; width: 70%; margin-top: 30px;">Выход</button>
+    <div id="profile-screen">
+        <div class="avatar"><img id="user-av" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky"></div>
+        <div class="info-card">
+            <div class="label">Имя</div>
+            <div id="p-name">Загрузка...</div>
         </div>
+        <div class="info-card">
+            <div class="label">Никнейм</div>
+            <div id="p-nick">@...</div>
+        </div>
+        <button class="btn-sub" onclick="location.reload()">Выйти</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Если ты используешь чистый HTML на Vercel без Vite, 
-        // тебе нужно заменить эти process.env на реальные значения из image_416f3c.png 
-        // Либо настроить сборку проекта.
+        // Эти данные Vercel подставит сам, если ты используешь сборщик.
+        // Если нет — впиши ключи сюда вручную из image_416f3c.png для теста.
         const firebaseConfig = {
-            apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
+            apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", // Вставь свой ключ из Vercel
             authDomain: "hate-24365.firebaseapp.com",
             projectId: "hate-24365",
             storageBucket: "hate-24365.firebasestorage.app",
@@ -79,52 +82,43 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const notify = (msg) => {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
-        };
-
-        async function handleAuth(mode) {
-            const email = document.getElementById('email').value.trim().toLowerCase();
+        async function auth(mode) {
+            const email = document.getElementById('email').value.toLowerCase().trim();
             const pass = document.getElementById('pass').value;
 
-            if(!email || !pass) return notify("Заполни поля");
+            if(!email || !pass) return alert("Заполни поля!");
 
             try {
                 const userRef = doc(db, "users", email);
-                const userSnap = await getDoc(userRef);
+                const snap = await getDoc(userRef);
 
-                if(mode === 'login') {
-                    if(userSnap.exists() && userSnap.data().password === pass) {
-                        showApp(userSnap.data());
+                if (mode === 'login') {
+                    if (snap.exists() && snap.data().password === pass) {
+                        renderProfile(snap.data());
                     } else {
-                        notify("Ошибка входа");
+                        alert("Неверные данные");
                     }
                 } else {
-                    if(userSnap.exists()) return notify("Уже есть такой");
-                    const newUser = { name: "x", nick: "imbowii", password: pass, av: "" };
+                    if (snap.exists()) return alert("Уже занято!");
+                    const newUser = { name: "x", nick: email.split('@')[0], password: pass };
                     await setDoc(userRef, newUser);
-                    showApp(newUser);
+                    renderProfile(newUser);
                 }
             } catch (e) {
                 console.error(e);
-                notify("Ошибка базы. Проверь Rules!");
+                alert("Ошибка базы. Проверь Rules в Firebase!");
             }
         }
 
-        function showApp(user) {
+        function renderProfile(user) {
             document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-screen').style.display = 'flex';
-            document.getElementById('disp-name').innerText = user.name;
-            document.getElementById('disp-nick').innerText = "@" + user.nick;
-            if(user.av) document.getElementById('my-av').src = user.av;
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('p-name').innerText = user.name || "Без имени";
+            document.getElementById('p-nick').innerText = "@" + (user.nick || "anon");
         }
 
-        document.getElementById('login-btn').onclick = () => handleAuth('login');
-        document.getElementById('reg-btn').onclick = () => handleAuth('reg');
-        
-        lucide.createIcons();
+        document.getElementById('login-btn').onclick = () => auth('login');
+        document.getElementById('reg-btn').onclick = () => auth('reg');
     </script>
 </body>
 </html>
