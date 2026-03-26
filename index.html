@@ -117,6 +117,16 @@
     <div class="set-card" style="cursor:default"><div class="set-card-content"><div class="set-card-label">Почта</div><span id="s-email">Email</span></div></div>
     <div class="set-card" onclick="changeField('bio')"><div class="set-card-content"><div class="set-card-label">О себе</div><span id="s-bio">Hate hate hate...</span></div><i data-lucide="chevron-right" style="color:var(--t3)"></i></div>
 
+    <div class="section-title">Устройства</div>
+    <div class="set-card" style="cursor:default; border-color: rgba(0,255,102,0.2)">
+        <i data-lucide="monitor" style="color:var(--on); width:20px"></i>
+        <div class="set-card-content">
+            <div class="set-card-label" style="color:var(--on)">Текущий сеанс</div>
+            <span id="s-device">Web Portal Stable</span>
+        </div>
+        <span style="font-size:9px; background:rgba(0,255,102,0.1); color:var(--on); padding:4px 8px; border-radius:8px; font-weight:700">ONLINE</span>
+    </div>
+
     <button class="btn-p" onclick="logout()" style="margin-top:40px; background:rgba(255,0,0,0.1); color:#ff4d4d">Выйти</button>
   </div>
 </div>
@@ -168,11 +178,11 @@
   window.setAuth = (m) => { _mode = m; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 't-'+m)); renderAuth(); };
   function renderAuth(step = 1) {
     const box = document.getElementById('auth-fields');
-    if(_mode === 'login') box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="doLogin()">Войти</button></div>`;
+    if(_mode === 'login') box.innerHTML = `<div style="padding:25px"><input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="doLogin()">Войти</button></div>`;
     else {
-      if(step === 1) box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="email" id="r-email" class="input-box" placeholder="Email"><button class="btn-p" onclick="sendCode()">Код</button></div>`;
-      else if(step === 2) box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="Код"><button class="btn-p" onclick="verify()">Ок</button></div>`;
-      else box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="password" id="r-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="finishReg()">Готово</button></div>`;
+      if(step === 1) box.innerHTML = `<div style="padding:25px"><input type="email" id="r-email" class="input-box" placeholder="Email"><button class="btn-p" onclick="sendCode()">Код</button></div>`;
+      else if(step === 2) box.innerHTML = `<div style="padding:25px"><input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="Код"><button class="btn-p" onclick="verify()">Ок</button></div>`;
+      else box.innerHTML = `<div style="padding:25px"><input type="password" id="r-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="finishReg()">Готово</button></div>`;
     }
   }
   renderAuth();
@@ -187,7 +197,7 @@
   window.verify = () => { if(document.getElementById('r-code').value === _code) renderAuth(3); else notify("Неверно"); };
   window.finishReg = async () => {
     const email = document.getElementById('r-email').value, pass = document.getElementById('r-pass').value;
-    const user = { name: "User", nick: "", bio: "hate hate hate, i hate it, hat all", password: pass, myChats: [], av: "" };
+    const user = { name: "User", nick: "", bio: "hate hate hate...", password: pass, myChats: [], av: "", devices: ["Web Portal"] };
     await setDoc(doc(db, "users", email), user);
     _me = { ...user, email }; enterApp();
   };
@@ -210,6 +220,8 @@
     document.getElementById('s-nick').innerText = _me.nick ? "@" + _me.nick : "не задан";
     document.getElementById('s-email').innerText = _me.email;
     document.getElementById('s-bio').innerText = _me.bio || "О себе";
+    const dev = window.innerWidth < 768 ? "Mobile App Interface" : "Desktop Web Portal";
+    document.getElementById('s-device').innerText = dev;
     if(_me.av) document.getElementById('my-av-img').src = _me.av;
     updateIcons();
   }
@@ -256,17 +268,11 @@
         const myChats = snap.data().myChats || [];
         for(let item of myChats) {
             let title = "", sub = "", av = "";
-            if(item.type === 'group') {
-                const g = (await getDoc(doc(db, "groups", item.id))).data();
-                if(!g) continue;
-                title = g.name; sub = g.type === 'group' ? 'Группа' : 'Канал';
-                av = `<div class="av-main" style="background:#333">${title[0]}</div>`;
-            } else {
-                const u = (await getDoc(doc(db, "users", item.id))).data();
-                if(!u) continue;
-                title = u.name; sub = "@" + u.nick;
-                av = u.av ? `<img src="${u.av}" class="av-main">` : `<div class="av-main">${title[0]}</div>`;
-            }
+            const s = await getDoc(doc(db, item.type === 'group' ? "groups" : "users", item.id));
+            if(!s.exists()) continue;
+            const d = s.data();
+            title = d.name; sub = item.type === 'group' ? (d.type === 'group' ? 'Группа' : 'Канал') : "@" + d.nick;
+            av = d.av ? `<img src="${d.av}" class="av-main">` : `<div class="av-main" style="background:#222">${title[0]}</div>`;
             const div = document.createElement('div'); div.className = "contact-item";
             div.innerHTML = `${av}<div><b>${title}</b><div style="font-size:11px;color:var(--t3)">${sub}</div></div>`;
             div.onclick = () => openChat(item); list.appendChild(div);
@@ -278,16 +284,11 @@
     _to = item;
     document.getElementById('chat-header').classList.remove('hidden');
     document.getElementById('input-bar').classList.remove('hidden');
-    if(item.type === 'group') {
-        const g = (await getDoc(doc(db, "groups", item.id))).data();
-        document.getElementById('chat-title').innerText = g.name;
-        document.getElementById('chat-av-box').innerHTML = g.name[0];
-        if(g.type === 'channel' && g.creator !== _me.email) document.getElementById('input-bar').classList.add('hidden');
-    } else {
-        const u = (await getDoc(doc(db, "users", item.id))).data();
-        document.getElementById('chat-title').innerText = u.name;
-        document.getElementById('chat-av-box').innerHTML = u.av ? `<img src="${u.av}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name[0];
-    }
+    const s = await getDoc(doc(db, item.type === 'group' ? "groups" : "users", item.id));
+    const d = s.data();
+    document.getElementById('chat-title').innerText = d.name;
+    document.getElementById('chat-av-box').innerHTML = d.av ? `<img src="${d.av}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : d.name[0];
+    if(item.type === 'group' && d.type === 'channel' && d.creator !== _me.email) document.getElementById('input-bar').classList.add('hidden');
     if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hide');
     loadMsgs();
   };
