@@ -7,20 +7,11 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --bg: #0a0a0a; --s1: #111; --s2: #181818;
-    --t1: #f0f0f0; --t3: #666; --acc: #ffffff;
-    --bd: rgba(255,255,255,0.08); --err: #ff4d4d;
-  }
+  :root { --bg: #0a0a0a; --s1: #111; --s2: #181818; --t1: #f0f0f0; --t3: #666; --acc: #ffffff; --bd: rgba(255,255,255,0.08); --err: #ff4d4d; }
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
   body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .anim-slide { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .logo-container { margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; }
-  .logo-main { display: flex; flex-direction: column; line-height: 0.8; font-weight: 700; font-size: 72px; letter-spacing: -4px; }
-  .logo-main .hate { color: var(--t3); }
-  .logo-main .me { color: #fff; margin-left: 55px; }
+  @keyframes slide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .anim { animation: slide 0.4s ease forwards; }
   #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
   .auth-card { width: 100%; max-width: 400px; background: var(--s1); border: 1px solid var(--bd); border-radius: 32px; overflow: hidden; }
   .auth-nav { display: flex; border-bottom: 1px solid var(--bd); }
@@ -28,91 +19,98 @@
   .auth-nav button.active { color: #fff; background: rgba(255,255,255,0.03); }
   .auth-body { padding: 40px; min-height: 320px; }
   .auth-step { display: none; }
-  .auth-step.active { display: block; animation: slideUp 0.4s ease forwards; }
-  .input-group { margin-bottom: 22px; }
+  .auth-step.active { display: block; }
+  .input-group { margin-bottom: 20px; }
   .input-group label { display: block; font-size: 10px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
-  .input-group input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; border-radius: 16px; color: #fff; font-size: 14px; }
-  #reg-err { color: var(--err); font-size: 11px; margin-top: -15px; margin-bottom: 15px; display: none; }
-  .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; }
+  .input-group input, .input-group textarea { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; border-radius: 16px; color: #fff; font-size: 14px; }
+  #reg-err { color: var(--err); font-size: 11px; margin-top: -15px; margin-bottom: 15px; display: none; font-weight: 500; }
+  .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; transition: 0.2s; }
   .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; }
-  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transition: 0.8s; }
+  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transition: 0.6s; }
   #app-screen.visible { display: flex; opacity: 1; }
   .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
-  .search-wrapper { padding: 0 25px 15px; }
-  .search-input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 14px 18px; border-radius: 14px; color: #fff; font-size: 14px; }
-  .prof-box { padding: 20px; border-top: 1px solid var(--bd); background: #0c0c0c; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .search-box { padding: 0 20px 15px; }
+  .search-box input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 12px; border-radius: 12px; color: #fff; font-size: 14px; }
+  .prof-box { padding: 15px 20px; border-top: 1px solid var(--bd); background: #0c0c0c; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  #settings-modal { position: fixed; inset: 0; background: var(--bg); z-index: 3000; display: none; padding: 40px; flex-direction: column; align-items: center; }
 </style>
 </head>
 <body>
+
 <div id="auth-screen">
-  <div class="logo-container"><div class="logo-main"><span class="hate">Hate</span><span class="me">Me</span></div></div>
-  <div class="auth-card anim-slide">
+  <div class="auth-card anim">
     <div class="auth-nav">
-        <button id="t-login" class="active" onclick="tab('login')">ВХОД</button>
-        <button id="t-reg" onclick="tab('reg')">РЕГИСТРАЦИЯ</button>
+      <button id="t-login" class="active" onclick="tab('login')">ВХОД</button>
+      <button id="t-reg" onclick="tab('reg')">РЕГИСТРАЦИЯ</button>
     </div>
     <div class="auth-body">
-        <div id="s-login" class="auth-step active">
-            <div class="input-group"><label>Email</label><input type="email" id="l-email" placeholder="mail@hate.me"></div>
-            <div class="input-group"><label>Пароль</label><input type="password" id="l-pass" placeholder="••••••••"></div>
-            <button class="btn-main" onclick="doLogin()">Войти</button>
-        </div>
-        <div id="s-reg-1" class="auth-step">
-            <div class="input-group"><label>Email</label><input type="email" id="r-email" placeholder="email@example.com"></div>
-            <div id="reg-err">Эта почта уже занята</div>
-            <button class="btn-main" id="b-code" onclick="getCode()">Получить код</button>
-        </div>
-        <div id="s-reg-2" class="auth-step">
-            <div class="input-group"><label>Код</label><input type="text" id="r-code" maxlength="6" style="text-align:center; letter-spacing:8px; font-size:20px;"></div>
-            <button class="btn-main" onclick="checkCode()">Подтвердить</button>
-        </div>
-        <div id="s-reg-3" class="auth-step">
-            <div class="input-group"><label>Пароль</label><input type="password" id="r-pass" placeholder="••••••••"></div>
-            <button class="btn-main" onclick="doReg()">Создать аккаунт</button>
-        </div>
+      <div id="s-login" class="auth-step active">
+        <div class="input-group"><label>Email</label><input type="email" id="l-email"></div>
+        <div class="input-group"><label>Пароль</label><input type="password" id="l-pass"></div>
+        <button class="btn-main" onclick="doLogin()">Войти</button>
+      </div>
+      <div id="s-reg-1" class="auth-step">
+        <div class="input-group"><label>Email</label><input type="email" id="r-email"></div>
+        <div id="reg-err">Почта уже зарегистрирована</div>
+        <button class="btn-main" id="b-code" onclick="getCode()">Получить код</button>
+      </div>
+      <div id="s-reg-2" class="auth-step">
+        <div class="input-group"><label>Код</label><input type="text" id="r-code" maxlength="6" style="text-align:center; letter-spacing:4px;"></div>
+        <button class="btn-main" onclick="checkCode()">Подтвердить</button>
+      </div>
+      <div id="s-reg-3" class="auth-step">
+        <div class="input-group"><label>Придумайте пароль</label><input type="password" id="r-pass"></div>
+        <button class="btn-main" onclick="doReg()">Создать аккаунт</button>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="app-screen">
   <aside class="sidebar">
-    <div style="padding: 30px 25px;"><h3>Hate Me</h3></div>
-    <div class="search-wrapper"><input type="text" class="search-input" id="search" placeholder="Поиск по ID..."></div>
-    <div style="flex:1; overflow-y:auto;" id="list"></div>
+    <div style="padding: 25px; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="letter-spacing:-1px;">Hate Me</h3>
+      <button onclick="toggleSet(true)" style="background:none; border:none; color:var(--t3); cursor:pointer;"><i data-lucide="settings"></i></button>
+    </div>
+    <div class="search-box"><input type="text" id="find" placeholder="@nick или ID + Enter"></div>
+    <div id="list" style="flex:1; overflow-y:auto;"></div>
     <div class="prof-box">
-        <div style="width:44px; height:44px; border-radius:14px; background:#222; display:flex; align-items:center; justify-content:center;"><i data-lucide="user"></i></div>
-        <div style="flex:1">
-            <div id="u-nick" style="font-weight:700; font-size:14px;">@user</div>
-            <div id="u-id" style="color:var(--t3); font-size:10px;">ID: 0000000000</div>
-        </div>
+      <div style="width:40px; height:40px; border-radius:12px; background:#222; display:flex; align-items:center; justify-content:center;"><i data-lucide="user"></i></div>
+      <div style="flex:1">
+        <div id="u-nick" style="font-weight:700; font-size:14px;">@user</div>
+        <div id="u-id" style="color:var(--t3); font-size:10px;">ID: 0</div>
+      </div>
     </div>
   </aside>
   <main style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--t3);">Выберите чат</main>
 </div>
 
+<div id="settings-modal">
+  <div style="width:100%; max-width:400px;" class="anim">
+    <button onclick="toggleSet(false)" style="background:none; border:none; color:#fff; cursor:pointer; margin-bottom:30px; display:flex; align-items:center; gap:8px;"><i data-lucide="chevron-left"></i> Назад</button>
+    <h2 style="margin-bottom:25px;">Настройки</h2>
+    <div class="input-group"><label>Имя пользователя</label><input type="text" id="edit-n"></div>
+    <div class="input-group"><label>О себе</label><textarea id="edit-a" rows="3"></textarea></div>
+    <button class="btn-main" onclick="saveSet()">Сохранить</button>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  const cfg = {
-    apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
-    authDomain: "hate-24365.firebaseapp.com",
-    projectId: "hate-24365",
-    storageBucket: "hate-24365.firebasestorage.app",
-    appId: "1:990484802574:web:56e00d91e1e58df144a05f"
-  };
-
+  const cfg = { apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", authDomain: "hate-24365.firebaseapp.com", projectId: "hate-24365", storageBucket: "hate-24365.firebasestorage.app", appId: "1:990484802574:web:56e00d91e1e58df144a05f" };
   const app = initializeApp(cfg);
   const db = getFirestore(app);
-  let _code = "", _can = true;
+  let _c = "", _can = true, _m = "";
 
   lucide.createIcons();
 
   window.tab = (t) => {
-    document.getElementById('t-login').classList.toggle('active', t==='login');
-    document.getElementById('t-reg').classList.toggle('active', t==='reg');
+    document.getElementById('t-login').className = t==='login'?'active':'';
+    document.getElementById('t-reg').className = t==='reg'?'active':'';
     document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-    document.getElementById(t==='login' ? 's-login' : 's-reg-1').classList.add('active');
+    document.getElementById(t==='login'?'s-login':'s-reg-1').classList.add('active');
   };
 
   const step = (n) => {
@@ -121,85 +119,86 @@
   };
 
   window.getCode = async () => {
-    if (!_can) return;
+    if(!_can) return;
     const mail = document.getElementById('r-email').value;
-    if(!mail.includes('@')) return;
-    
-    const snap = await getDoc(doc(db, "users", mail));
-    if (snap.exists()) {
-        document.getElementById('reg-err').style.display = 'block';
-        return;
-    }
-    document.getElementById('reg-err').style.display = 'none';
+    const err = document.getElementById('reg-err');
+    const btn = document.getElementById('b-code');
 
-    _can = false;
-    _code = Math.floor(100000 + Math.random() * 900000).toString();
+    const snap = await getDoc(doc(db, "users", mail));
+    if(snap.exists()) { err.style.display='block'; return; }
+    err.style.display='none';
+
+    _can = false; _c = Math.floor(100000 + Math.random() * 900000).toString();
     
     let t = 30;
-    const b = document.getElementById('b-code');
-    b.disabled = true;
+    btn.disabled = true;
     const timer = setInterval(() => {
-        b.innerText = `Wait ${t}s`;
-        if (t-- <= 0) {
-            clearInterval(timer);
-            _can = true; b.disabled = false; b.innerText = "Получить код";
-        }
+        btn.innerText = `Ждите ${t}s`;
+        if(t-- <= 0) { clearInterval(timer); _can=true; btn.disabled=false; btn.innerText="Получить код"; }
     }, 1000);
 
-    fetch('https://server-roan-omega.vercel.app/send-code', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email: mail, code: _code })
+    fetch('https://server-roan-omega.vercel.app/send-code', { 
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({ email: mail, code: _c }) 
     }).then(res => { if(res.ok) step(2); });
   };
 
-  window.checkCode = () => {
-    if(document.getElementById('r-code').value.trim() === _code) step(3);
-    else alert("Invalid code");
-  };
+  window.checkCode = () => { if(document.getElementById('r-code').value.trim() === _c) step(3); else alert("Wrong code"); };
 
   window.doReg = async () => {
     const mail = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
-    const id = Math.floor(Math.random() * 9000000000);
-    await setDoc(doc(db, "users", mail), { nick: mail.split('@')[0], password: pass, id: id });
-    initApp(mail.split('@')[0], id);
+    const id = Math.floor(1000000000 + Math.random() * 9000000000);
+    const u = { nick: mail.split('@')[0], password: pass, id: id, about: "" };
+    await setDoc(doc(db, "users", mail), u);
+    _m = mail; start(u);
   };
 
   window.doLogin = async () => {
     const mail = document.getElementById('l-email').value;
     const snap = await getDoc(doc(db, "users", mail));
-    if(snap.exists() && snap.data().password === document.getElementById('l-pass').value) {
-        initApp(snap.data().nick, snap.data().id);
-    } else alert("Error");
+    if(snap.exists() && snap.data().password === document.getElementById('l-pass').value) { _m = mail; start(snap.data()); }
+    else alert("Ошибка!");
   };
 
-  function initApp(n, i) {
-    document.getElementById('u-nick').innerText = "@" + n;
-    document.getElementById('u-id').innerText = "ID: " + i;
+  function start(u) {
+    document.getElementById('u-nick').innerText = "@" + u.nick;
+    document.getElementById('u-id').innerText = "ID: " + u.id;
+    document.getElementById('edit-n').value = u.nick;
+    document.getElementById('edit-a').value = u.about || "";
     document.getElementById('auth-screen').style.display = 'none';
-    const a = document.getElementById('app-screen');
-    a.style.display = 'flex';
-    setTimeout(() => a.classList.add('visible'), 50);
-    lucide.createIcons();
+    const app = document.getElementById('app-screen');
+    app.style.display = 'flex';
+    setTimeout(() => app.classList.add('visible'), 50);
   }
 
-  document.getElementById('search').addEventListener('keypress', async (e) => {
+  window.toggleSet = (v) => document.getElementById('settings-modal').style.display = v ? 'flex' : 'none';
+
+  window.saveSet = async () => {
+    const n = document.getElementById('edit-n').value;
+    const a = document.getElementById('edit-a').value;
+    await updateDoc(doc(db, "users", _m), { nick: n, about: a });
+    document.getElementById('u-nick').innerText = "@" + n;
+    toggleSet(false);
+  };
+
+  document.getElementById('find').addEventListener('keypress', async (e) => {
     if(e.key === 'Enter') {
         const v = e.target.value.trim();
-        if(!v) return;
-        const l = document.getElementById('list');
-        l.innerHTML = "<div style='padding:20px; color:gray; font-size:12px;'>Searching...</div>";
-        const qy = query(collection(db, "users"), where("id", "==", parseInt(v)));
-        const s = await getDocs(qy);
-        l.innerHTML = "";
-        if(s.empty) { l.innerHTML = "<div style='padding:20px; color:gray; font-size:12px;'>Not found</div>"; return; }
-        s.forEach(d => {
+        const list = document.getElementById('list');
+        list.innerHTML = "";
+        let q;
+        if(v.startsWith('@')) q = query(collection(db, "users"), where("nick", "==", v.replace('@','')));
+        else q = query(collection(db, "users"), where("id", "==", parseInt(v)));
+        const snap = await getDocs(q);
+        if(snap.empty) { list.innerHTML = "<div style='padding:20px; color:gray; font-size:12px;'>Никого нет</div>"; return; }
+        snap.forEach(d => {
             const u = d.data();
-            const el = document.createElement('div');
-            el.className = 'prof-box';
-            el.innerHTML = `<div>@${u.nick}</div><div style="font-size:10px;color:gray">ID: ${u.id}</div>`;
-            l.appendChild(el);
+            const div = document.createElement('div');
+            div.className = 'prof-box anim';
+            div.innerHTML = `<div><div style="font-weight:700;">@${u.nick}</div><div style="font-size:10px;color:gray;">${u.about || 'Нет описания'}</div></div>`;
+            list.appendChild(div);
         });
     }
   });
