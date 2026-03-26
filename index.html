@@ -6,8 +6,8 @@
 <title>Hate Me</title>
 
 <script src="https://unpkg.com/lucide@latest"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
     --bg: #0a0a0a; --s1: #111; --s2: #181818;
@@ -17,43 +17,39 @@
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
   body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
 
-  /* АНИМАЦИИ */
+  /* --- АНИМАЦИИ --- */
   @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .anim-fade { animation: fadeIn 0.6s ease; }
+
   .anim-slide { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
-  /* ЛОГО */
-  .logo-container { margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; animation: scaleIn 0.8s ease; }
+  /* --- ЛОГО --- */
+  .logo-container { margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; }
   .logo-main { display: flex; flex-direction: column; line-height: 0.8; font-weight: 700; font-size: 72px; letter-spacing: -4px; }
   .logo-main .hate { color: var(--t3); }
   .logo-main .me { color: #fff; margin-left: 55px; }
 
-  /* АВТОРИЗАЦИЯ */
-  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: 0.8s; }
-  .auth-card { width: 100%; max-width: 400px; background: var(--s1); border: 1px solid var(--bd); border-radius: 32px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+  /* --- АВТОРИЗАЦИЯ --- */
+  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { width: 100%; max-width: 400px; background: var(--s1); border: 1px solid var(--bd); border-radius: 32px; overflow: hidden; }
   .auth-nav { display: flex; border-bottom: 1px solid var(--bd); }
-  .auth-nav button { flex: 1; padding: 22px; background: none; border: none; color: var(--t3); font-weight: 700; cursor: pointer; }
+  .auth-nav button { flex: 1; padding: 22px; background: none; border: none; color: var(--t3); font-weight: 700; cursor: pointer; transition: 0.3s; }
   .auth-nav button.active { color: #fff; background: rgba(255,255,255,0.03); }
-  .auth-body { padding: 40px; min-height: 320px; }
+  .auth-body { padding: 40px; min-height: 320px; position: relative; }
   .auth-step { display: none; }
   .auth-step.active { display: block; animation: slideUp 0.4s ease forwards; }
 
-  /* ПРИЛОЖЕНИЕ */
-  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transform: scale(1.1); transition: 0.8s; }
-  #app-screen.visible { display: flex; opacity: 1; transform: scale(1); }
+  /* --- ПРИЛОЖЕНИЕ --- */
+  #app-screen { display: none; height: 100vh; width: 100%; opacity: 0; transition: 0.8s; }
+  #app-screen.visible { display: flex; opacity: 1; }
   .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
-  
+
   .input-group { margin-bottom: 22px; }
   .input-group label { display: block; font-size: 10px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
-  .input-group input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; border-radius: 16px; color: #fff; font-size: 14px; }
-  
-  .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; transition: 0.3s; }
-  .btn-main:hover:not(:disabled) { transform: translateY(-3px); opacity: 0.9; }
-  .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+  .input-group input { width: 100%; background: var(--s2); border: 1px solid var(--bd); padding: 15px; border-radius: 16px; color: #fff; }
 
-  .prof-box { padding: 20px; border-top: 1px solid var(--bd); background: #0c0c0c; display: flex; align-items: center; gap: 12px; }
+  .btn-main { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--acc); color: #000; font-weight: 700; cursor: pointer; transition: 0.3s; }
+  .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -78,7 +74,7 @@
             <button class="btn-main" id="btn-get-code" onclick="sendCode()">Получить код</button>
         </div>
         <div id="step-reg-2" class="auth-step">
-            <div class="input-group"><label>Код из письма</label><input type="text" id="r-code" maxlength="6" placeholder="000000" style="text-align:center; letter-spacing:8px; font-size:20px;"></div>
+            <div class="input-group"><label>Код из письма</label><input type="text" id="r-code" maxlength="6" placeholder="000 000" style="text-align:center; letter-spacing:5px; font-size:20px;"></div>
             <button class="btn-main" onclick="verifyCode()">Подтвердить</button>
         </div>
         <div id="step-reg-3" class="auth-step">
@@ -91,15 +87,8 @@
 
 <div id="app-screen">
   <aside class="sidebar">
-    <div style="padding: 30px 25px;"><h3>Hate Me</h3></div>
-    <div style="flex:1"></div>
-    <div class="prof-box">
-        <div id="av-stub" style="width:44px; height:44px; border-radius:14px; background:#222; display:flex; align-items:center; justify-content:center;"><i data-lucide="user"></i></div>
-        <div style="flex:1">
-            <div id="ui-nick" style="font-weight:700; font-size:14px;">@username</div>
-            <div id="ui-id" style="color:var(--t3); font-size:10px;">Hate ID: 0000000000</div>
-        </div>
-    </div>
+    <div style="padding: 30px 25px; font-weight:700; font-size:22px;">Hate Me</div>
+    <div id="ui-nick" style="padding:20px;">@username</div>
   </aside>
   <main style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--t3);">Выберите чат</main>
 </div>
@@ -109,18 +98,19 @@
   import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
-    authDomain: "hate-24365.firebaseapp.com",
-    projectId: "hate-24365",
-    storageBucket: "hate-24365.firebasestorage.app",
-    appId: "1:990484802574:web:56e00d91e1e58df144a05f"
+    apiKey: "AIzaSyCVcSmwPF6XPup8L9AO-mmP3qQpXGO697w",
+    authDomain: "weed-messenger-8200e.firebaseapp.com",
+    projectId: "weed-messenger-8200e",
+    storageBucket: "weed-messenger-8200e.firebasestorage.app",
+    messagingSenderId: "165427827145",
+    appId: "1:165427827145:web:a9fac6fec1b87f226e1818"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  
   let tempGeneratedCode = "";
-  let canSend = true; // Флаг для таймера
+  let currentUserEmail = "";
+  let isCooldown = false;
 
   lucide.createIcons();
 
@@ -131,67 +121,74 @@
     document.getElementById(t==='login' ? 'step-login' : 'step-reg-1').classList.add('active');
   };
 
-  window.nextStep = (n) => {
-    document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-    document.getElementById('step-reg-'+n).classList.add('active');
-  };
-
-  // ФУНКЦИЯ ОТПРАВКИ С ТАЙМЕРОМ 30 СЕКУНД
   window.sendCode = async function() {
-    if (!canSend) return; // Если таймер идет, ничего не делаем
-
-    const email = document.getElementById('r-email').value;
-    if(!email.includes('@')) return alert("Введите корректный Email!");
-
+    const email = document.getElementById('r-email').value.trim();
     const btn = document.getElementById('btn-get-code');
-    canSend = false;
-    tempGeneratedCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    if(!email || !email.includes('@')) return alert("Введите нормальный Email!");
+    if(isCooldown) return;
 
-    // Запускаем визуальный таймер
-    let timeLeft = 30;
+    // --- ПРОВЕРКА НА СУЩЕСТВУЮЩУЮ ПОЧТУ ---
+    const userSnap = await getDoc(doc(db, "users", email));
+    if(userSnap.exists()) {
+        return alert("Этот Email уже зарегистрирован! Просто войди.");
+    }
+
+    // Генерация кода
+    tempGeneratedCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("DEBUG CODE:", tempGeneratedCode);
+
+    // Таймер 30 секунд
+    isCooldown = true;
     btn.disabled = true;
-    const timerInterval = setInterval(() => {
-        btn.innerText = `Повтор через ${timeLeft}s`;
+    let timeLeft = 30;
+    const interval = setInterval(() => {
         timeLeft--;
-        if (timeLeft < 0) {
-            clearInterval(timerInterval);
-            canSend = true;
+        btn.innerText = `Повтор (${timeLeft}с)`;
+        if(timeLeft <= 0) {
+            clearInterval(interval);
+            isCooldown = false;
             btn.disabled = false;
             btn.innerText = "Получить код";
         }
     }, 1000);
 
+    // Переход ко второму шагу
+    document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-reg-2').classList.add('active');
+
+    // Отправка через сервер Python
     try {
-        const response = await fetch('http://localhost:5000/send-code', {
+        await fetch('http://127.0.0.1:5000/send-code', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ email: email, code: tempGeneratedCode })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code: tempGeneratedCode })
         });
-        if(response.ok) {
-            nextStep(2);
-        } else {
-            alert("Ошибка сервера Python");
-        }
-    } catch(e) {
-        alert("Запусти сервер Python (server.py)!");
+    } catch (e) {
+        console.error("Ошибка сервера:", e);
     }
   };
 
   window.verifyCode = () => {
-    const userInp = document.getElementById('r-code').value.trim();
-    if(String(userInp) === String(tempGeneratedCode)) {
-        nextStep(3);
-    } else {
-        alert("Неверный код!");
-    }
+    if(document.getElementById('r-code').value.trim() === tempGeneratedCode) {
+        document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step-reg-3').classList.add('active');
+    } else alert("Неверный код!");
   };
 
   window.registerUser = async () => {
     const email = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
-    const id = Math.floor(Math.random() * 9000000000);
-    await setDoc(doc(db, "users", email), { nick: email.split('@')[0], password: pass, id: id });
-    showApp(email.split('@')[0], id);
+    if(pass.length < 6) return alert("Пароль слишком короткий!");
+    
+    const hateID = Math.floor(1000000000 + Math.random() * 9000000000);
+    await setDoc(doc(db, "users", email), {
+        nick: email.split('@')[0],
+        id: hateID,
+        password: pass
+    });
+    currentUserEmail = email;
+    showApp(email.split('@')[0]);
   };
 
   window.loginUser = async () => {
@@ -199,22 +196,17 @@
     const pass = document.getElementById('l-pass').value;
     const snap = await getDoc(doc(db, "users", email));
     if(snap.exists() && snap.data().password === pass) {
-        showApp(snap.data().nick, snap.data().id);
-    } else alert("Ошибка входа!");
+        currentUserEmail = email;
+        showApp(snap.data().nick);
+    } else alert("Неверные данные или юзер не найден!");
   };
 
-  function showApp(nick, id) {
+  function showApp(nick) {
     document.getElementById('ui-nick').innerText = "@" + nick;
-    document.getElementById('ui-id').innerText = "Hate ID: " + id;
-    const auth = document.getElementById('auth-screen');
+    document.getElementById('auth-screen').style.display = 'none';
     const appS = document.getElementById('app-screen');
-    auth.style.opacity = '0';
-    setTimeout(() => {
-        auth.style.display = 'none';
-        appS.style.display = 'flex';
-        setTimeout(() => appS.classList.add('visible'), 50);
-        lucide.createIcons();
-    }, 600);
+    appS.style.display = 'flex';
+    setTimeout(() => appS.classList.add('visible'), 50);
   }
 </script>
 </body>
