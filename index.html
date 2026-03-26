@@ -2,281 +2,202 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>Hate Me</title>
 <script src="https://unpkg.com/lucide@latest"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
-  :root { --bg: #050505; --s1: #0f0f0f; --s2: #161616; --t1: #f0f0f0; --t3: #555; --acc: #ffffff; --bd: rgba(255,255,255,0.06); --on: #00ff66; --err: #ff4d4d; }
+  :root { --bg: #050505; --s1: #0f0f0f; --s2: #161616; --t1: #f0f0f0; --t3: #555; --acc: #ffffff; --bd: rgba(255,255,255,0.06); --on: #00ff66; }
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
   body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
 
+  /* --- ЭФФЕКТНЫЕ АНИМАЦИИ --- */
   @keyframes entrance { from { opacity: 0; transform: scale(1.05); filter: blur(10px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
+  @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes msgPop { from { transform: scale(0.9) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  @keyframes glow { 0% { box-shadow: 0 0 5px rgba(255,255,255,0); } 50% { box-shadow: 0 0 15px rgba(255,255,255,0.1); } 100% { box-shadow: 0 0 5px rgba(255,255,255,0); } }
+
   .anim-enter { animation: entrance 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+  .anim-msg { animation: msgPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
+  .anim-slide { animation: slideIn 0.4s ease forwards; }
 
-  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .auth-card { width: 360px; background: rgba(15,15,15,0.7); backdrop-filter: blur(30px); padding: 45px; border-radius: 50px; border: 1px solid var(--bd); text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-  .input-box { background: var(--s2); border: 1px solid var(--bd); padding: 18px; border-radius: 22px; color: #fff; width: 100%; margin-bottom: 14px; font-size: 14px; transition: 0.3s; }
-  .input-box:focus { border-color: rgba(255,255,255,0.2); background: #1a1a1a; }
-  .btn-p { background: var(--acc); color: #000; font-weight: 700; padding: 20px; border-radius: 22px; border: none; cursor: pointer; width: 100%; transition: 0.3s; }
+  /* --- LAYOUT --- */
+  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; transition: 0.8s cubic-bezier(0.7, 0, 0.3, 1); }
+  .auth-card { width: 360px; background: rgba(15,15,15,0.8); backdrop-filter: blur(20px); padding: 40px; border-radius: 40px; border: 1px solid var(--bd); }
+  
+  #app-screen { display: none; width: 100%; height: 100vh; opacity: 0; transform: scale(0.95); transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  #app-screen.show { display: flex; opacity: 1; transform: scale(1); }
+
+  .sidebar { width: 320px; border-right: 1px solid var(--bd); background: var(--s1); display: flex; flex-direction: column; }
+  .chat-area { flex: 1; display: flex; flex-direction: column; position: relative; background: #080808; }
+
+  /* --- UI ELEMENTS --- */
+  .input-box { background: var(--s2); border: 1px solid var(--bd); padding: 16px; border-radius: 20px; color: #fff; width: 100%; transition: 0.3s; }
+  .input-box:focus { border-color: #555; background: #1a1a1a; }
+  
+  .btn-p { background: var(--acc); color: #000; font-weight: 700; padding: 18px; border-radius: 20px; border: none; cursor: pointer; transition: 0.3s; width: 100%; }
   .btn-p:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
-  .btn-p:active { transform: translateY(0); }
-  .link { color: var(--t3); font-size: 12px; margin-top: 20px; cursor: pointer; display: block; font-weight: 500; transition: 0.3s; }
-  .link:hover { color: var(--t1); }
+  .btn-p:active { transform: scale(0.98); }
 
-  #app-screen { display: none; width: 100%; height: 100vh; }
-  .sidebar { width: 360px; border-right: 1px solid var(--bd); background: var(--s1); display: flex; flex-direction: column; z-index: 10; transition: 0.4s; }
-  .chat-area { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
+  .contact-item { padding: 15px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; border-radius: 20px; margin: 0 10px; }
+  .contact-item:hover { background: rgba(255,255,255,0.03); }
+  
+  .messages { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+  .bubble { max-width: 75%; padding: 14px 18px; border-radius: 22px; font-size: 14px; position: relative; }
+  .bubble.me { align-self: flex-end; background: var(--acc); color: #000; border-bottom-right-radius: 4px; }
+  .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 4px; }
 
-  #settings { position: fixed; inset: 0; background: rgba(5,5,5,0.8); backdrop-filter: blur(25px); z-index: 3000; display: none; overflow-y: auto; }
-  .set-card { max-width: 420px; margin: 60px auto; width: 90%; background: var(--s1); padding: 40px; border-radius: 45px; border: 1px solid var(--bd); }
-  .av-edit { width: 120px; height: 120px; border-radius: 45px; background: var(--s2); margin: 0 auto 30px; position: relative; overflow: hidden; cursor: pointer; border: 1px solid var(--bd); transition: 0.3s; }
-  .av-edit:hover { border-color: var(--acc); }
-  .av-edit img { width: 100%; height: 100%; object-fit: cover; }
-  .av-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
-  .av-edit:hover .av-overlay { opacity: 1; }
+  .status-on { width: 8px; height: 8px; background: var(--on); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--on); }
 
-  .set-section { background: var(--s2); padding: 20px; border-radius: 25px; margin-bottom: 15px; border: 1px solid var(--bd); }
-  .set-label { color: var(--t3); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; font-weight: 700; }
-
-  .bubble { max-width: 75%; padding: 16px 20px; border-radius: 26px; font-size: 14px; margin-bottom: 6px; line-height: 1.5; position: relative; }
-  .bubble.me { align-self: flex-end; background: var(--acc); color: #000; border-bottom-right-radius: 6px; font-weight: 500; }
-  .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 6px; border: 1px solid var(--bd); }
+  #settings { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); z-index: 3000; display: none; align-items: center; justify-content: center; }
   
   .hidden { display: none !important; }
-  @media (max-width: 768px) { .sidebar { width: 100%; position: absolute; left: 0; top: 0; height: 100%; } .sidebar.mobile-hide { transform: translateX(-100%); } }
 </style>
 </head>
 <body>
 
 <div id="auth-screen">
   <div class="auth-card anim-enter">
-    <h1 style="font-size: 42px; margin-bottom: 35px; letter-spacing: -3px; font-weight: 700;">Hate Me</h1>
-    
-    <div id="step-email">
-      <input type="email" id="reg-email" class="input-box" placeholder="Email Address">
-      <button class="btn-p" id="send-code-btn">Get Verification Code</button>
-      <span class="link" id="go-login">Back to Login</span>
-    </div>
-
-    <div id="step-code" class="hidden">
-      <div style="margin-bottom: 20px; font-size: 13px; color: var(--t3);">Verification code sent to your email</div>
-      <input type="text" id="verify-code" class="input-box" placeholder="••••••" style="text-align: center; letter-spacing: 8px; font-size: 20px;">
-      <button class="btn-p" id="verify-btn">Verify Identity</button>
-    </div>
-
-    <div id="step-final" class="hidden">
-      <input type="text" id="reg-nick" class="input-box" placeholder="@username">
-      <input type="password" id="reg-pass" class="input-box" placeholder="Create Password">
-      <button class="btn-p" id="finish-reg-btn">Start Chatting</button>
-    </div>
-
-    <div id="step-login" class="hidden">
-      <input type="email" id="login-email" class="input-box" placeholder="Email">
-      <input type="password" id="login-pass" class="input-box" placeholder="Password">
-      <button class="btn-p" id="login-btn">Connect</button>
-      <span class="link" id="go-reg">Create an Account</span>
+    <h1 style="font-size:32px; letter-spacing:-2px; margin-bottom:30px; text-align:center">Hate Me</h1>
+    <div id="auth-box">
+      <input type="email" id="email" class="input-box" placeholder="Email" style="margin-bottom:12px">
+      <input type="password" id="pass" class="input-box" placeholder="Password" style="margin-bottom:25px">
+      <button class="btn-p" onclick="login()">Connect</button>
+      <div style="text-align:center; margin-top:20px; font-size:12px; color:var(--t3); cursor:pointer" onclick="reg()">No account? Create</div>
     </div>
   </div>
 </div>
 
 <div id="app-screen">
-  <aside class="sidebar" id="side-ui">
-    <div style="padding:40px 30px 20px; display:flex; justify-content:space-between; align-items:center">
-      <h2 style="font-size: 28px; letter-spacing: -1px;">Messages</h2>
-      <div style="display:flex; gap:18px">
-        <i data-lucide="plus-circle" id="create-btn" style="cursor:pointer; color:var(--t3); width: 22px;"></i>
-        <i data-lucide="settings" id="open-set-btn" style="cursor:pointer; color:var(--t3); width: 22px;"></i>
-      </div>
+  <aside class="sidebar">
+    <div style="padding:30px 25px; display:flex; justify-content:space-between; align-items:center">
+      <h2 style="letter-spacing:-1px">Chats</h2>
+      <i data-lucide="settings" style="cursor:pointer; color:var(--t3)" onclick="openSet()"></i>
     </div>
-    <div style="padding:0 25px 25px"><input type="text" id="find" class="input-box" placeholder="Search by @nick" style="border-radius: 18px; padding: 14px 20px; background: var(--s1); border: 1px solid var(--bd);"></div>
-    <div id="contacts" style="flex:1; overflow-y:auto; padding: 0 10px;"></div>
+    <div style="padding:0 20px 20px"><input type="text" id="find" class="input-box" placeholder="Search @user..." style="padding:12px 16px; border-radius:15px"></div>
+    <div id="contacts" style="flex:1"></div>
+    <div style="padding:20px; border-top:1px solid var(--bd); display:flex; align-items:center; gap:12px">
+      <div style="width:40px; height:40px; border-radius:50%; background:#222; display:flex; align-items:center; justify-content:center"><i data-lucide="user"></i></div>
+      <div style="flex:1"><div id="u-nick" style="font-weight:700; font-size:14px">@user</div><div id="u-id" style="font-size:10px; color:var(--t3)">ID: 0</div></div>
+    </div>
   </aside>
 
   <main class="chat-area">
-    <div id="header" style="padding:20px 30px; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:15px; background: rgba(5,5,5,0.5); backdrop-filter: blur(10px);" class="hidden">
-      <i data-lucide="chevron-left" id="close-chat" style="cursor:pointer; width: 24px;"></i>
-      <div id="c-nick" style="font-weight:700; font-size: 18px;">@nick</div>
+    <div id="header" style="padding:15px 25px; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:12px" class="hidden">
+      <div id="c-av" style="width:38px; height:38px; border-radius:50%; background:#222"></div>
+      <div><div id="c-nick" style="font-weight:700">@nick</div><div id="c-status" style="font-size:10px; color:var(--t3)">offline</div></div>
     </div>
-    <div id="messages" style="flex:1; overflow-y:auto; padding:30px; display:flex; flex-direction:column"></div>
-    <div id="input-ui" style="padding:25px 30px; display:flex; gap:15px; background: #080808;" class="hidden">
-      <input type="text" id="msg-t" class="input-box" placeholder="Type a message..." style="margin-bottom:0; border-radius: 20px;">
-      <button id="send-btn" style="background:var(--acc); border:none; width:56px; height:56px; border-radius:20px; cursor:pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="send" style="color:#000; width: 20px;"></i></button>
+    <div id="messages" class="messages"></div>
+    <div id="input-ui" style="padding:20px; display:flex; gap:12px" class="hidden">
+      <input type="text" id="msg-t" class="input-box" placeholder="Write a message..." style="border-radius:18px">
+      <button onclick="send()" style="background:var(--acc); border:none; width:52px; height:52px; border-radius:18px; cursor:pointer; display:flex; align-items:center; justify-content:center"><i data-lucide="send" style="color:#000; width:20px"></i></button>
     </div>
   </main>
 </div>
 
 <div id="settings">
-  <div class="set-card anim-enter">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-        <h1 style="font-size: 32px; letter-spacing: -1.5px;">Profile</h1>
-        <i data-lucide="x" id="close-set-btn" style="cursor:pointer; color:var(--t3)"></i>
+  <div class="auth-card anim-enter">
+    <h2 style="margin-bottom:25px">Profile</h2>
+    <div style="display:flex; flex-direction:column; gap:15px">
+      <input type="text" id="set-n" class="input-box" placeholder="@username">
+      <textarea id="set-a" class="input-box" placeholder="About you" rows="3"></textarea>
+      <input type="text" id="set-v" class="input-box" placeholder="Avatar URL">
+      <div id="set-err" style="color:var(--err); font-size:11px"></div>
+      <button class="btn-p" onclick="saveSet()">Save Changes</button>
+      <button style="background:none; border:none; color:#fff; cursor:pointer; font-size:13px" onclick="closeSet()">Cancel</button>
     </div>
-    
-    <div class="av-edit" id="av-trigger">
-        <img id="set-av-img" src="">
-        <input type="file" id="file-input" hidden accept="image/*">
-        <div class="av-overlay"><i data-lucide="camera" style="width:24px"></i></div>
-    </div>
-
-    <div class="set-section">
-        <span class="set-label">Personal Identity</span>
-        <input type="text" id="set-n" class="input-box" placeholder="@username" style="margin-bottom:0; background:transparent; border:none; padding: 5px 0;">
-    </div>
-
-    <div class="set-section">
-        <span class="set-label">Biography</span>
-        <textarea id="set-desc" class="input-box" rows="2" placeholder="Tell them who you are..." style="margin-bottom:0; background:transparent; border:none; padding: 5px 0; resize: none;"></textarea>
-    </div>
-
-    <div class="set-section" style="border: 1px solid rgba(0,255,102,0.1);">
-        <span class="set-label" style="color:var(--on)">Security & Devices</span>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-            <span style="font-size:13px; font-weight:700;">Web Portal Stable</span>
-            <span style="font-size:10px; background:rgba(0,255,102,0.1); color:var(--on); padding:4px 10px; border-radius:10px;">ACTIVE</span>
-        </div>
-    </div>
-
-    <button class="btn-p" id="save-set-btn" style="margin-top:20px;">Save Profile</button>
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
   const cfg = { apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", authDomain: "hate-24365.firebaseapp.com", projectId: "hate-24365", storageBucket: "hate-24365.firebasestorage.app", appId: "1:990484802574:web:56e00d91e1e58df144a05f" };
   const app = initializeApp(cfg);
   const db = getFirestore(app);
-  const API = "https://server-roan-omega.vercel.app";
-
-  let _me = null, _to = null, _sub = null, _code = null, _tempMail = "", _av = "";
-  let lastReq = 0;
+  let _me = null, _to = null, _sub = null;
 
   lucide.createIcons();
 
-  const throttle = () => {
-    const now = Date.now();
-    if (now - lastReq < 2000) { alert("Too many requests. Wait."); return true; }
-    lastReq = now; return false;
-  };
-
-  document.getElementById('send-code-btn').onclick = async () => {
-    if(throttle()) return;
-    _tempMail = document.getElementById('reg-email').value.trim().toLowerCase();
-    if(!_tempMail) return;
-    _code = Math.floor(100000 + Math.random() * 900000).toString();
-    try {
-      await fetch(`${API}/api/send-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: _tempMail, code: _code })
-      });
-      document.getElementById('step-email').classList.add('hidden');
-      document.getElementById('step-code').classList.remove('hidden');
-    } catch(e) { alert("DDoS Protection: Server Busy"); }
-  };
-
-  document.getElementById('verify-btn').onclick = () => {
-    if(document.getElementById('verify-code').value.trim() === _code) {
-      document.getElementById('step-code').classList.add('hidden');
-      document.getElementById('step-final').classList.remove('hidden');
-    } else alert("Verification failed");
-  };
-
-  document.getElementById('finish-reg-btn').onclick = async () => {
-    const n = document.getElementById('reg-nick').value.trim().toLowerCase();
-    const p = document.getElementById('reg-pass').value;
-    if(!n || !p) return;
-    const check = await getDocs(query(collection(db, "users"), where("nick", "==", n)));
-    if(!check.empty) return alert("Nickname taken");
-    await setDoc(doc(db, "users", _tempMail), { nick: n, password: p, email: _tempMail, av: "", desc: "", devices: ["Web-V2"], created: serverTimestamp() });
-    location.reload();
-  };
-
-  document.getElementById('login-btn').onclick = async () => {
-    if(throttle()) return;
-    const e = document.getElementById('login-email').value.trim().toLowerCase();
-    const p = document.getElementById('login-pass').value;
-    const s = await getDoc(doc(db, "users", e));
+  window.login = async () => {
+    const m = document.getElementById('email').value, p = document.getElementById('pass').value;
+    const s = await getDoc(doc(db, "users", m));
     if(s.exists() && s.data().password === p) {
-      _me = { ...s.data(), email: e };
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('app-screen').style.display = 'flex';
-      _av = _me.av;
-    } else alert("Invalid credentials");
-  };
-
-  document.getElementById('av-trigger').onclick = () => document.getElementById('file-input').click();
-  document.getElementById('file-input').onchange = (e) => {
-    const reader = new FileReader();
-    reader.onload = () => { _av = reader.result; document.getElementById('set-av-img').src = _av; };
-    reader.readAsDataURL(e.target.files[0]);
-  };
-
-  document.getElementById('save-set-btn').onclick = async () => {
-    const n = document.getElementById('set-n').value.trim();
-    const d = document.getElementById('set-desc').value.trim();
-    await updateDoc(doc(db, "users", _me.email), { nick: n, desc: d, av: _av });
-    _me.nick = n; _me.desc = d; _me.av = _av;
-    document.getElementById('settings').style.display = 'none';
-  };
-
-  document.getElementById('open-set-btn').onclick = () => {
-    document.getElementById('set-n').value = _me.nick;
-    document.getElementById('set-desc').value = _me.desc || "";
-    document.getElementById('set-av-img').src = _me.av || "";
-    document.getElementById('settings').style.display = 'block';
-  };
-
-  document.getElementById('close-set-btn').onclick = () => document.getElementById('settings').style.display = 'none';
-  document.getElementById('go-login').onclick = () => { document.getElementById('step-email').classList.add('hidden'); document.getElementById('step-login').classList.remove('hidden'); };
-  document.getElementById('go-reg').onclick = () => { document.getElementById('step-login').classList.add('hidden'); document.getElementById('step-email').classList.remove('hidden'); };
-
-  document.getElementById('find').onkeypress = async (e) => {
-    if(e.key === 'Enter') {
-      const v = e.target.value.replace('@','').trim().toLowerCase();
-      const q = query(collection(db, "users"), where("nick", "==", v));
-      const s = await getDocs(q);
-      const list = document.getElementById('contacts'); list.innerHTML = "";
-      s.forEach(d => {
-        if(d.id === _me.email) return;
-        const u = d.data();
-        const div = document.createElement('div');
-        div.style = "padding:20px 25px; cursor:pointer; border-radius:25px; margin-bottom:5px; display:flex; align-items:center; gap:15px; transition:0.3s";
-        div.onmouseover = () => div.style.background = "rgba(255,255,255,0.03)";
-        div.onmouseout = () => div.style.background = "transparent";
-        div.innerHTML = `<img src="${u.av || ''}" style="width:45px;height:45px;border-radius:18px;background:#222;object-fit:cover;border:1px solid var(--bd)"><div><div style="font-weight:700;font-size:15px">@${u.nick}</div><div style="font-size:11px;color:var(--t3)">${u.desc || 'No bio yet'}</div></div>`;
-        div.onclick = () => {
-          _to = { ...u, email: d.id, type: 'private' };
-          document.getElementById('header').classList.remove('hidden');
-          document.getElementById('input-ui').classList.remove('hidden');
-          document.getElementById('c-nick').innerText = "@"+_to.nick;
-          if(window.innerWidth < 768) document.getElementById('side-ui').classList.add('mobile-hide');
-          load();
-        };
-        list.appendChild(div);
-      });
+      _me = { ...s.data(), email: m };
+      document.getElementById('auth-screen').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('auth-screen').classList.add('hidden');
+        const appUi = document.getElementById('app-screen');
+        appUi.classList.add('show');
+        startApp();
+      }, 600);
     }
   };
 
-  document.getElementById('create-btn').onclick = async () => {
-    const name = prompt("Channel/Group Name:");
-    if(!name) return;
-    const id = "channel_" + Date.now();
-    await setDoc(doc(db, "channels", id), { name, owner: _me.email, members: [_me.email], created: serverTimestamp() });
-    alert("Channel Created");
+  function startApp() {
+    document.getElementById('u-nick').innerText = "@" + _me.nick;
+    document.getElementById('u-id').innerText = "ID: " + _me.id;
+    updateDoc(doc(db, "users", _me.email), { status: 'online' });
+  }
+
+  window.openSet = () => {
+    document.getElementById('set-n').value = _me.nick || "";
+    document.getElementById('set-a').value = _me.about || "";
+    document.getElementById('set-v').value = _me.av || "";
+    document.getElementById('settings').style.display = 'flex';
+  };
+  window.closeSet = () => document.getElementById('settings').style.display = 'none';
+
+  window.saveSet = async () => {
+    const n = document.getElementById('set-n').value.trim(), a = document.getElementById('set-a').value, v = document.getElementById('set-v').value;
+    if(n.length < 5) return alert("Min 5 chars");
+    const qy = query(collection(db, "users"), where("nick", "==", n));
+    const snap = await getDocs(qy);
+    if(!snap.empty && n !== _me.nick) return alert("Taken");
+    await updateDoc(doc(db, "users", _me.email), { nick: n, about: a, av: v });
+    _me.nick = n; closeSet();
+    document.getElementById('u-nick').innerText = "@" + n;
   };
 
-  function load() {
+  document.getElementById('find').addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') {
+      const v = e.target.value.replace('@','');
+      const qy = query(collection(db, "users"), where("nick", "==", v));
+      const s = await getDocs(qy);
+      const list = document.getElementById('contacts');
+      list.innerHTML = "";
+      s.forEach(d => {
+        const u = d.data();
+        const div = document.createElement('div');
+        div.className = 'contact-item anim-slide';
+        div.innerHTML = `<img src="${u.av || ''}" style="width:42px;height:42px;border-radius:50%;background:#222;object-fit:cover"><div><b>@${u.nick}</b><div style="font-size:10px;color:var(--t3)">${u.status||'offline'}</div></div>`;
+        div.onclick = () => openChat(u, d.id);
+        list.appendChild(div);
+      });
+    }
+  });
+
+  function openChat(user, email) {
+    if(!_me.nick || _me.nick.length < 5) return alert("Set @user first!");
+    _to = { ...user, email: email };
+    document.getElementById('header').classList.remove('hidden');
+    document.getElementById('input-ui').classList.remove('hidden');
+    document.getElementById('c-nick').innerText = "@" + user.nick;
+    document.getElementById('c-status').innerText = user.status || 'offline';
+    loadMsgs();
+  }
+
+  function loadMsgs() {
     if(_sub) _sub();
     const id = [_me.email, _to.email].sort().join('_');
     _sub = onSnapshot(collection(db, "chats", id, "messages"), (s) => {
-      const box = document.getElementById('messages'); box.innerHTML = "";
+      const box = document.getElementById('messages');
+      box.innerHTML = "";
       let ms = []; s.forEach(d => ms.push(d.data()));
-      ms.sort((a,b)=>a.time-b.time).forEach(m => {
+      ms.sort((a,b) => a.time - b.time).forEach(m => {
         const d = document.createElement('div');
-        d.className = `bubble ${m.from===_me.email?'me':'to'}`;
+        d.className = `bubble anim-msg ${m.from === _me.email ? 'me' : 'to'}`;
         d.innerText = m.text;
         box.appendChild(d);
       });
@@ -284,15 +205,15 @@
     });
   }
 
-  document.getElementById('send-btn').onclick = async () => {
+  window.send = async () => {
     const t = document.getElementById('msg-t');
-    if(!t.value.trim() || throttle()) return;
+    if(!t.value.trim()) return;
     const id = [_me.email, _to.email].sort().join('_');
-    await addDoc(collection(db, "chats", id, "messages"), { from:_me.email, text: t.value, time: Date.now() });
+    await addDoc(collection(db, "chats", id, "messages"), { from: _me.email, text: t.value, time: Date.now() });
     t.value = "";
   };
 
-  document.getElementById('close-chat').onclick = () => document.getElementById('side-ui').classList.remove('mobile-hide');
+  window.addEventListener('beforeunload', () => updateDoc(doc(db, "users", _me.email), { status: 'offline' }));
 </script>
 </body>
 </html>
