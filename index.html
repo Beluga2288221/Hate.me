@@ -17,7 +17,6 @@
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
   #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; z-index: 5000; display: none; }
 
-  /* AUTH */
   #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .auth-box { width: min(90%, 380px); background: var(--card); border-radius: 30px; border: 1px solid var(--bd); overflow: hidden; }
   .auth-tabs { display: flex; border-bottom: 1px solid var(--bd); }
@@ -26,7 +25,6 @@
   .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 15px; color: #000; font-size: 14px; margin-bottom: 15px; }
   .btn-p { width: 100%; padding: 18px; border-radius: 15px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; }
 
-  /* APP */
   #app-screen { display: none; width: 100%; height: 100%; }
   .sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--bd); display: flex; flex-direction: column; z-index: 10; }
   .chat-area { flex: 1; background: var(--bg); display: flex; flex-direction: column; position: relative; }
@@ -42,7 +40,6 @@
   .bubble.me { align-self: flex-end; background: #fff; color: #000; border-bottom-right-radius: 4px; }
   .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 4px; }
 
-  /* SETTINGS PANEL */
   .modal-overlay { position: fixed; inset: 0; background: rgba(5,5,5,0.92); backdrop-filter: var(--blur); z-index: 4000; display: none; flex-direction: column; align-items: center; padding: 40px 20px; animation: fade 0.3s ease; overflow-y: auto; }
   .settings-container { width: min(100%, 500px); }
   .section-title { font-size: 11px; color: var(--t3); text-transform: uppercase; font-weight: 800; margin: 30px 0 15px 10px; letter-spacing: 1px; }
@@ -130,7 +127,7 @@
         <h1>Создать</h1>
         <i data-lucide="x" onclick="toggleModal('create-modal')" style="cursor:pointer"></i>
     </div>
-    <select id="create-type" class="input-box" style="background: #e8f0fe;"><option value="group">Группа</option><option value="channel">Канал</option></select>
+    <select id="create-type" class="input-box"><option value="group">Группа</option><option value="channel">Канал</option></select>
     <input type="text" id="create-name" class="input-box" placeholder="Название">
     <input type="text" id="create-members" class="input-box" placeholder="Участники (@user1, @user2)">
     <button class="btn-p" onclick="processCreate()">Создать</button>
@@ -141,11 +138,21 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc, arrayUnion, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  const cfg = { apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", authDomain: "hate-24365.firebaseapp.com", projectId: "hate-24365", storageBucket: "hate-24365.firebasestorage.app", appId: "1:990484802574:web:56e00d91e1e58df144a05f" };
+  const _0xHate = ["QUl6YVN5QS1QTER2YUxuem9KV1RXSmIxN1U0RkpVMHppUWZMMGVV", "aGF0ZS0yNDM2NS5maXJlYmFzZWFwcC5jb20=", "aGF0ZS0yNDM2NQ==", "aGF0ZS0yNDM2NS5maXJlYmFzZXN0b3JhZ2UuYXBw", "MTo5OTA0ODQ4MDI1NzQ6d2ViOjU2ZTBmOTRiOGU1OGRmMTQ0YTA1Zg=="];
+  const decrypt = (s) => atob(s);
+  const cfg = { apiKey: decrypt(_0xHate[0]), authDomain: decrypt(_0xHate[1]), projectId: decrypt(_0xHate[2]), storageBucket: decrypt(_0xHate[3]), appId: decrypt(_0xHate[4]) };
+  
   const app = initializeApp(cfg);
   const db = getFirestore(app);
 
-  let _me = null, _to = null, _code = "", _mode = 'login', _sub = null, _chatsSub = null;
+  let _me = null, _to = null, _code = "", _mode = 'login', _sub = null, _chatsSub = null, _vcl = 0;
+
+  const NVS = () => {
+    const now = Date.now();
+    if (now - _vcl < 800) return false;
+    _vcl = now; return true;
+  };
+
   const notify = (t) => { const el = document.getElementById('toast'); el.innerText = t; el.style.display = 'block'; setTimeout(() => el.style.display='none', 3000); };
   const updateIcons = () => lucide.createIcons();
 
@@ -161,22 +168,23 @@
   window.setAuth = (m) => { _mode = m; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 't-'+m)); renderAuth(); };
   function renderAuth(step = 1) {
     const box = document.getElementById('auth-fields');
-    if(_mode === 'login') box.innerHTML = `<input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="doLogin()">Войти</button>`;
+    if(_mode === 'login') box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="doLogin()">Войти</button></div>`;
     else {
-      if(step === 1) box.innerHTML = `<input type="email" id="r-email" class="input-box" placeholder="Email"><button class="btn-p" onclick="sendCode()">Код</button>`;
-      else if(step === 2) box.innerHTML = `<input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="Код"><button class="btn-p" onclick="verify()">Ок</button>`;
-      else box.innerHTML = `<input type="password" id="r-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="finishReg()">Готово</button>`;
+      if(step === 1) box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="email" id="r-email" class="input-box" placeholder="Email"><button class="btn-p" onclick="sendCode()">Код</button></div>`;
+      else if(step === 2) box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="Код"><button class="btn-p" onclick="verify()">Ок</button></div>`;
+      else box.innerHTML = `<div class="anim-enter" style="padding:25px"><input type="password" id="r-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="finishReg()">Готово</button></div>`;
     }
   }
   renderAuth();
 
   window.sendCode = async () => {
+    if(!NVS()) return;
     const email = document.getElementById('r-email').value;
     _code = Math.floor(100000 + Math.random() * 900000).toString();
     await fetch('https://server-roan-omega.vercel.app/send-code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email, code: _code }) });
     renderAuth(2);
   };
-  window.verify = () => { if(document.getElementById('r-code').value === _code) renderAuth(3); };
+  window.verify = () => { if(document.getElementById('r-code').value === _code) renderAuth(3); else notify("Неверно"); };
   window.finishReg = async () => {
     const email = document.getElementById('r-email').value, pass = document.getElementById('r-pass').value;
     const user = { name: "User", nick: "", bio: "hate hate hate, i hate it, hat all", password: pass, myChats: [], av: "" };
@@ -184,6 +192,7 @@
     _me = { ...user, email }; enterApp();
   };
   window.doLogin = async () => {
+    if(!NVS()) return;
     const m = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
     const s = await getDoc(doc(db, "users", m));
     if(s.exists() && s.data().password === p) { _me = { ...s.data(), email: m }; enterApp(); } else notify("Ошибка");
@@ -209,11 +218,15 @@
     const file = input.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onloadend = async () => {
+        const canvas = document.createElement('canvas');
         const img = new Image(); img.src = reader.result;
         img.onload = async () => {
-            const canvas = document.createElement('canvas'); const ctx = canvas.toDataURL('image/jpeg', 0.6);
-            await updateDoc(doc(db, "users", _me.email), { av: canvas });
-            _me.av = canvas; updateInfo();
+            canvas.width = 200; canvas.height = 200;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, 200, 200);
+            const data = canvas.toDataURL('image/jpeg', 0.5);
+            await updateDoc(doc(db, "users", _me.email), { av: data });
+            _me.av = data; updateInfo();
         };
     };
     reader.readAsDataURL(file);
@@ -228,6 +241,7 @@
   };
 
   window.processCreate = async () => {
+    if(!NVS()) return;
     const type = document.getElementById('create-type').value, name = document.getElementById('create-name').value.trim();
     if(!name) return notify("Название!");
     const docRef = await addDoc(collection(db, "groups"), { name, type, creator: _me.email, participants: [_me.email], time: Date.now() });
@@ -244,10 +258,12 @@
             let title = "", sub = "", av = "";
             if(item.type === 'group') {
                 const g = (await getDoc(doc(db, "groups", item.id))).data();
+                if(!g) continue;
                 title = g.name; sub = g.type === 'group' ? 'Группа' : 'Канал';
                 av = `<div class="av-main" style="background:#333">${title[0]}</div>`;
             } else {
                 const u = (await getDoc(doc(db, "users", item.id))).data();
+                if(!u) continue;
                 title = u.name; sub = "@" + u.nick;
                 av = u.av ? `<img src="${u.av}" class="av-main">` : `<div class="av-main">${title[0]}</div>`;
             }
@@ -291,6 +307,7 @@
   }
 
   window.sendMsg = async () => {
+    if(!NVS()) return;
     const inp = document.getElementById('msg-input'); if(!inp.value.trim()) return;
     const path = _to.type === 'group' ? `groups/${_to.id}/messages` : `chats/${[_me.email, _to.id].sort().join('_')}/messages`;
     if(_to.type !== 'group') {
