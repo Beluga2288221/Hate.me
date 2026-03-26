@@ -171,7 +171,7 @@
     lucide.createIcons();
   };
 
-  document.getElementById('login-btn').onclick = async () => {
+  const doLogin = async () => {
     if(flood()) return;
     const e = document.getElementById('auth-email').value.trim().toLowerCase();
     const p = document.getElementById('auth-pass').value.trim();
@@ -181,7 +181,7 @@
     else notify("Ошибка входа");
   };
 
-  document.getElementById('reg-step1-btn').onclick = async () => {
+  const doRegStep1 = async () => {
     if(flood()) return;
     const e = document.getElementById('reg-email').value.trim().toLowerCase();
     const p = document.getElementById('reg-pass').value.trim();
@@ -192,7 +192,7 @@
     showStep(3);
   };
 
-  document.getElementById('reg-final-btn').onclick = async () => {
+  const doRegFinal = async () => {
     if(flood()) return;
     const n = document.getElementById('reg-name').value.trim();
     const ni = document.getElementById('reg-nick').value.trim().toLowerCase().replace('@','');
@@ -206,8 +206,12 @@
     start();
   };
 
-  document.getElementById('to-reg').onclick = () => showStep(2);
-  document.getElementById('to-login').onclick = () => showStep(1);
+  // ПРИВЯЗКА СОБЫТИЙ (ЧТОБЫ КНОПКИ РАБОТАЛИ В МОДУЛЕ)
+  document.getElementById('login-btn').addEventListener('click', doLogin);
+  document.getElementById('reg-step1-btn').addEventListener('click', doRegStep1);
+  document.getElementById('reg-final-btn').addEventListener('click', doRegFinal);
+  document.getElementById('to-reg').addEventListener('click', () => showStep(2));
+  document.getElementById('to-login').addEventListener('click', () => showStep(1));
 
   function listen() {
     onSnapshot(doc(db, "users", _me.email), async (snap) => {
