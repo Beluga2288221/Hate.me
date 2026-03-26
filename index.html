@@ -11,41 +11,41 @@
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
   body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
 
-  /* АНИМАЦИИ */
   @keyframes entrance { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .anim-enter { animation: entrance 0.4s ease forwards; }
 
-  /* ТВОЙ ДИЗАЙН ВХОДА (ПО СКРИНШОТУ) */
+  /* AUTH */
   #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .logo-main { font-size: 48px; font-weight: 700; margin-bottom: 30px; letter-spacing: -2px; }
   .logo-main span { color: var(--t3); }
-
   .auth-box { width: 380px; background: #0f0f0f; border-radius: 24px; border: 1px solid var(--bd); overflow: hidden; }
   .auth-tabs { display: flex; border-bottom: 1px solid var(--bd); }
-  .tab { flex: 1; padding: 18px; text-align: center; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--t3); transition: 0.3s; text-transform: uppercase; }
+  .tab { flex: 1; padding: 18px; text-align: center; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--t3); text-transform: uppercase; }
   .tab.active { color: #fff; background: rgba(255,255,255,0.03); }
-
   .auth-body { padding: 30px; }
-  .input-group { margin-bottom: 20px; }
   .label-mini { font-size: 9px; color: var(--t3); text-transform: uppercase; margin-bottom: 8px; display: block; font-weight: 700; }
-  .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 12px; color: #000; font-size: 14px; font-weight: 500; }
-  .btn-white { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; margin-top: 10px; }
+  .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 12px; color: #000; font-size: 14px; font-weight: 500; margin-bottom: 20px; }
+  .btn-white { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; }
 
-  /* ПРИЛОЖЕНИЕ */
+  /* APP */
   #app-screen { display: none; width: 100%; height: 100vh; }
   .sidebar { width: 350px; background: var(--s1); border-right: 1px solid var(--bd); display: flex; flex-direction: column; }
   .chat-area { flex: 1; background: #080808; display: flex; flex-direction: column; }
+  
+  .contact-item { padding: 15px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
+  .contact-item:hover { background: rgba(255,255,255,0.03); }
 
-  /* ПРОФИЛЬ (ПО ОБРАЗЦУ TG) */
+  .bubble { max-width: 70%; padding: 12px 16px; border-radius: 18px; font-size: 14px; margin-bottom: 5px; line-height: 1.4; }
+  .bubble.me { align-self: flex-end; background: #fff; color: #000; border-bottom-right-radius: 4px; }
+  .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 4px; }
+
+  /* PROFILE TG STYLE */
   #settings { position: fixed; inset: 0; background: #0e1621; z-index: 3000; display: none; flex-direction: column; }
-  .set-header { padding: 20px; display: flex; align-items: center; gap: 20px; font-size: 18px; font-weight: 500; }
-  .set-content { flex: 1; overflow-y: auto; max-width: 500px; margin: 0 auto; width: 100%; }
-  .set-avatar-block { padding: 40px 20px; text-align: center; position: relative; }
-  .set-av-circle { width: 120px; height: 120px; border-radius: 50%; background: #2b333e; margin: 0 auto 15px; overflow: hidden; position: relative; }
+  .set-header { padding: 20px; display: flex; align-items: center; gap: 20px; font-size: 18px; }
+  .set-avatar-block { padding: 40px 20px; text-align: center; }
+  .set-av-circle { width: 100px; height: 100px; border-radius: 50%; background: #2b333e; margin: 0 auto 15px; overflow: hidden; }
   .set-row { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 25px; cursor: pointer; }
-  .set-row:hover { background: rgba(255,255,255,0.02); }
-  .set-info { flex: 1; }
-  .set-val { font-size: 15px; color: #fff; margin-bottom: 2px; }
+  .set-val { font-size: 15px; color: #fff; }
   .set-lab { font-size: 13px; color: #8095a8; }
   
   .hidden { display: none !important; }
@@ -60,9 +60,7 @@
       <div class="tab active" id="tab-login" onclick="setAuthMode('login')">Вход</div>
       <div class="tab" id="tab-reg" onclick="setAuthMode('reg')">Регистрация</div>
     </div>
-    <div class="auth-body">
-      <div id="auth-fields"></div>
-    </div>
+    <div class="auth-body" id="auth-fields"></div>
   </div>
 </div>
 
@@ -72,7 +70,7 @@
       <h2 style="letter-spacing:-1px">Чаты</h2>
       <i data-lucide="menu" onclick="openSet()" style="cursor:pointer; color:var(--t3)"></i>
     </div>
-    <div style="padding:0 20px 20px"><input type="text" id="find" class="input-box" placeholder="Поиск @user..." style="background:var(--s2); color:#fff"></div>
+    <div style="padding:0 20px 20px"><input type="text" id="find" class="input-box" placeholder="Поиск @user + Enter" style="background:var(--s2); color:#fff; margin:0"></div>
     <div id="contacts" style="flex:1; overflow-y:auto"></div>
   </aside>
   <main class="chat-area">
@@ -85,40 +83,12 @@
 </div>
 
 <div id="settings">
-  <div class="set-header">
-    <i data-lucide="arrow-left" onclick="closeSet()" style="cursor:pointer"></i>
-    <span>Информация</span>
-  </div>
-  <div class="set-content">
-    <div class="set-avatar-block">
-      <div class="set-av-circle" id="my-av"></div>
-      <h2 id="prof-name">Имя</h2>
-      <p style="color:#8095a8; font-size:14px; margin-top:5px">в сети</p>
-    </div>
-    
-    <div class="set-row" onclick="editField('name')">
-      <i data-lucide="user" style="color:#8095a8"></i>
-      <div class="set-info">
-        <div class="set-val" id="val-name">Не указано</div>
-        <div class="set-lab">Имя</div>
-      </div>
-    </div>
-
-    <div class="set-row">
-      <i data-lucide="mail" style="color:#8095a8"></i>
-      <div class="set-info">
-        <div class="set-val" id="val-email">email@mail.com</div>
-        <div class="set-lab">Емаил пользователя</div>
-      </div>
-    </div>
-
-    <div class="set-row" onclick="editField('tag')">
-        <i data-lucide="at-sign" style="color:#8095a8"></i>
-        <div class="set-info">
-          <div class="set-val" id="val-tag">@username</div>
-          <div class="set-lab">Имя пользователя</div>
-        </div>
-    </div>
+  <div class="set-header"><i data-lucide="arrow-left" onclick="closeSet()" style="cursor:pointer"></i> Информация</div>
+  <div class="set-content" style="max-width:500px; margin:0 auto; width:100%">
+    <div class="set-avatar-block"><div class="set-av-circle" id="my-av"></div><h2 id="prof-name">Имя</h2><p style="color:#8095a8; font-size:14px">в сети</p></div>
+    <div class="set-row" onclick="editField('name')"><i data-lucide="user" style="color:#8095a8"></i><div class="set-info"><div class="set-val" id="val-name">Имя</div><div class="set-lab">Имя</div></div></div>
+    <div class="set-row"><i data-lucide="mail" style="color:#8095a8"></i><div class="set-info"><div class="set-val" id="val-email">Email</div><div class="set-lab">Емаил пользователя</div></div></div>
+    <div class="set-row" onclick="editField('tag')"><i data-lucide="at-sign" style="color:#8095a8"></i><div class="set-info"><div class="set-val" id="val-tag">@username</div><div class="set-lab">Имя пользователя</div></div></div>
   </div>
 </div>
 
@@ -130,56 +100,29 @@
   const app = initializeApp(cfg);
   const db = getFirestore(app);
 
-  let _me = null, _to = null, _code = "", _mode = 'login';
+  let _me = null, _to = null, _code = "", _mode = 'login', _sub = null;
   lucide.createIcons();
 
-  // ПЕРЕКЛЮЧЕНИЕ ТАБОВ
-  window.setAuthMode = (m) => {
-    _mode = m;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + m).classList.add('active');
-    renderFields();
-  };
+  window.setAuthMode = (m) => { _mode = m; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id.includes(m))); renderFields(); };
 
   function renderFields(step = 1) {
-    const container = document.getElementById('auth-fields');
+    const f = document.getElementById('auth-fields');
     if(_mode === 'login') {
-      container.innerHTML = `
-        <div class="input-group"><span class="label-mini">Электронная почта</span><input type="email" id="l-email" class="input-box"></div>
-        <div class="input-group"><span class="label-mini">Пароль</span><input type="password" id="l-pass" class="input-box"></div>
-        <button class="btn-white" onclick="doLogin()">Войти</button>`;
+      f.innerHTML = `<span class="label-mini">Почта</span><input type="email" id="l-email" class="input-box"><span class="label-mini">Пароль</span><input type="password" id="l-pass" class="input-box"><button class="btn-white" onclick="doLogin()">Войти</button>`;
     } else {
-      if(step === 1) {
-        container.innerHTML = `
-          <div class="input-group"><span class="label-mini">Электронная почта</span><input type="email" id="r-email" class="input-box"></div>
-          <button class="btn-white" onclick="sendCode()">Получить код</button>`;
-      } else if(step === 2) {
-        container.innerHTML = `
-          <div class="input-group"><span class="label-mini">Код из письма</span><input type="text" id="r-code" class="input-box" style="text-align:center;letter-spacing:5px"></div>
-          <button class="btn-white" onclick="verify()">Подтвердить</button>`;
-      } else {
-        container.innerHTML = `
-          <div class="input-group"><span class="label-mini">Придумайте пароль (латиница)</span><input type="password" id="r-pass" class="input-box"></div>
-          <button class="btn-white" onclick="finishReg()">Завершить</button>`;
-      }
+      if(step === 1) f.innerHTML = `<span class="label-mini">Почта</span><input type="email" id="r-email" class="input-box"><button class="btn-white" onclick="sendCode()">Код</button>`;
+      else if(step === 2) f.innerHTML = `<span class="label-mini">Код</span><input type="text" id="r-code" class="input-box"><button class="btn-white" onclick="verify()">Ок</button>`;
+      else f.innerHTML = `<span class="label-mini">Пароль</span><input type="password" id="r-pass" class="input-box"><button class="btn-white" onclick="finishReg()">Всё</button>`;
     }
   }
   renderFields();
 
-  // ЛОГИКА
-  window.sendCode = async () => {
-    const email = document.getElementById('r-email').value;
-    _code = Math.floor(100000 + Math.random() * 900000).toString();
-    await fetch('https://server-roan-omega.vercel.app/send-code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email, code: _code }) });
-    renderFields(2);
-  };
-
+  window.sendCode = async () => { _code = Math.floor(100000 + Math.random() * 900000).toString(); await fetch('https://server-roan-omega.vercel.app/send-code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email: document.getElementById('r-email').value, code: _code }) }); renderFields(2); };
   window.verify = () => { if(document.getElementById('r-code').value === _code) renderFields(3); };
 
   window.finishReg = async () => {
     const email = document.getElementById('r-email').value, pass = document.getElementById('r-pass').value;
-    if(!/^[a-zA-Z0-9]+$/.test(pass)) return alert("Только латиница!");
-    const user = { name: "Новый пользователь", nick: "", password: pass, av: "", status: "online" };
+    const user = { name: "User", nick: "", password: pass, av: "", status: "online" };
     await setDoc(doc(db, "users", email), user);
     _me = { ...user, email }; enter();
   };
@@ -190,45 +133,71 @@
     if(s.exists() && s.data().password === p) { _me = { ...s.data(), email: m }; enter(); }
   };
 
-  function enter() {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'flex';
-    updateProfileUI();
-  }
-
-  function updateProfileUI() {
-    document.getElementById('prof-name').innerText = _me.name;
-    document.getElementById('val-name').innerText = _me.name;
-    document.getElementById('val-email').innerText = _me.email;
-    document.getElementById('val-tag').innerText = _me.nick ? "@" + _me.nick : "Не установлено";
-    if(_me.av) document.getElementById('my-av').innerHTML = `<img src="${_me.av}" style="width:100%;height:100%;object-fit:cover">`;
+  function enter() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-screen').style.display = 'flex'; updateUI(); }
+  function updateUI() {
+    document.getElementById('prof-name').innerText = _me.name; document.getElementById('val-name').innerText = _me.name;
+    document.getElementById('val-email').innerText = _me.email; document.getElementById('val-tag').innerText = _me.nick ? "@"+_me.nick : "Не задан";
     lucide.createIcons();
   }
 
   window.openSet = () => document.getElementById('settings').style.display = 'flex';
   window.closeSet = () => document.getElementById('settings').style.display = 'none';
 
-  window.editField = async (type) => {
-    let val = prompt(type === 'name' ? "Введите имя:" : "Введите @user (мин. 5 симв, латиница):");
-    if(!val) return;
-    
-    let updates = {};
-    if(type === 'name') updates.name = val;
-    if(type === 'tag') {
-        val = val.replace('@','').toLowerCase();
-        if(val.length < 5 || !/^[a-z0-9_]+$/.test(val)) return alert("Ошибка валидации!");
-        const q = query(collection(db, "users"), where("nick", "==", val));
-        const s = await getDocs(q);
-        if(!s.empty) return alert("Ник занят!");
-        updates.nick = val;
-    }
-    
-    await updateDoc(doc(db, "users", _me.email), updates);
-    Object.assign(_me, updates);
-    updateProfileUI();
+  window.editField = async (t) => {
+    let v = prompt("Введите значение:"); if(!v) return;
+    let up = {}; if(t === 'name') up.name = v;
+    else { v = v.replace('@','').toLowerCase(); if(v.length < 5) return alert("Мин. 5 символов"); up.nick = v; }
+    await updateDoc(doc(db, "users", _me.email), up); Object.assign(_me, up); updateUI();
   };
 
-  // ЧАТ И ПОИСК... (логика поиска и сообщений остается прежней)
+  // ИСПРАВЛЕННЫЙ ПОИСК
+  document.getElementById('find').addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') {
+      const val = e.target.value.replace('@','').toLowerCase().trim();
+      const q = query(collection(db, "users"), where("nick", "==", val));
+      const s = await getDocs(q);
+      const list = document.getElementById('contacts');
+      list.innerHTML = "";
+      if(s.empty) return alert("Юзер не найден");
+      s.forEach(d => {
+        const u = d.data(); if(d.id === _me.email) return;
+        const item = document.createElement('div');
+        item.className = "contact-item anim-enter";
+        item.innerHTML = `<div style="width:40px;height:40px;border-radius:50%;background:#222"></div><div><b>${u.name}</b><div style="font-size:11px;color:var(--t3)">@${u.nick}</div></div>`;
+        item.onclick = () => openChat(u, d.id);
+        list.appendChild(item);
+      });
+    }
+  });
+
+  function openChat(user, email) {
+    if(!_me.nick) return alert("Сначала создай свой @tag в настройках!");
+    _to = { ...user, email };
+    document.getElementById('input-ui').classList.remove('hidden');
+    loadMsgs();
+  }
+
+  function loadMsgs() {
+    if(_sub) _sub();
+    const chatID = [_me.email, _to.email].sort().join('_');
+    _sub = onSnapshot(collection(db, "chats", chatID, "messages"), (s) => {
+      const box = document.getElementById('messages'); box.innerHTML = "";
+      let ms = []; s.forEach(d => ms.push(d.data()));
+      ms.sort((a,b) => a.time - b.time).forEach(m => {
+        const d = document.createElement('div');
+        d.className = `bubble ${m.from === _me.email ? 'me' : 'to'}`;
+        d.innerText = m.text; box.appendChild(d);
+      });
+      box.scrollTop = box.scrollHeight;
+    });
+  }
+
+  window.send = async () => {
+    const t = document.getElementById('msg-t'); if(!t.value.trim()) return;
+    const chatID = [_me.email, _to.email].sort().join('_');
+    await addDoc(collection(db, "chats", chatID, "messages"), { from: _me.email, text: t.value, time: Date.now() });
+    t.value = "";
+  };
 </script>
 </body>
 </html>
