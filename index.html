@@ -141,7 +141,10 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc, arrayUnion, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  const cfg = { apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", authDomain: "hate-24365.firebaseapp.com", projectId: "hate-24365", storageBucket: "hate-24365.firebasestorage.app", appId: "1:990484802574:web:56e00d91e1e58df144a05f" };
+  // СКРЫТЫЕ НАСТРОЙКИ (В идеале вынести в .env на Vercel)
+  const _K = ["AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", "hate-24365.firebaseapp.com", "hate-24365", "hate-24365.firebasestorage.app", "1:990484802574:web:56e00d91e1e58df144a05f"];
+  const cfg = { apiKey: _K[0], authDomain: _K[1], projectId: _K[2], storageBucket: _K[3], appId: _K[4] };
+  
   const app = initializeApp(cfg);
   const db = getFirestore(app);
 
@@ -211,9 +214,11 @@
     reader.onloadend = async () => {
         const img = new Image(); img.src = reader.result;
         img.onload = async () => {
-            const canvas = document.createElement('canvas'); const ctx = canvas.toDataURL('image/jpeg', 0.6);
-            await updateDoc(doc(db, "users", _me.email), { av: canvas });
-            _me.av = canvas; updateInfo();
+            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+            canvas.width = 150; canvas.height = 150; ctx.drawImage(img, 0, 0, 150, 150);
+            const compressed = canvas.toDataURL('image/jpeg', 0.6);
+            await updateDoc(doc(db, "users", _me.email), { av: compressed });
+            _me.av = compressed; updateInfo();
         };
     };
     reader.readAsDataURL(file);
@@ -243,11 +248,15 @@
         for(let item of myChats) {
             let title = "", sub = "", av = "";
             if(item.type === 'group') {
-                const g = (await getDoc(doc(db, "groups", item.id))).data();
+                const gDoc = await getDoc(doc(db, "groups", item.id));
+                if(!gDoc.exists()) continue;
+                const g = gDoc.data();
                 title = g.name; sub = g.type === 'group' ? 'Группа' : 'Канал';
                 av = `<div class="av-main" style="background:#333">${title[0]}</div>`;
             } else {
-                const u = (await getDoc(doc(db, "users", item.id))).data();
+                const uDoc = await getDoc(doc(db, "users", item.id));
+                if(!uDoc.exists()) continue;
+                const u = uDoc.data();
                 title = u.name; sub = "@" + u.nick;
                 av = u.av ? `<img src="${u.av}" class="av-main">` : `<div class="av-main">${title[0]}</div>`;
             }
