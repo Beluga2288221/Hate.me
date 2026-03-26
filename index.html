@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <title>Hate Me</title>
 <script src="https://unpkg.com/lucide@latest"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
@@ -11,24 +11,27 @@
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
   body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
 
-  /* UI СТРУКТУРА */
   #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .auth-card { width: 360px; background: rgba(15,15,15,0.8); backdrop-filter: blur(20px); padding: 35px; border-radius: 40px; border: 1px solid var(--bd); }
+  .auth-card { width: 360px; background: rgba(15,15,15,0.8); backdrop-filter: blur(20px); padding: 35px; border-radius: 40px; border: 1px solid var(--bd); text-align: center; }
   .input-box { background: var(--s2); border: 1px solid var(--bd); padding: 16px; border-radius: 20px; color: #fff; width: 100%; margin-bottom: 12px; font-size: 14px; }
   .btn-p { background: var(--acc); color: #000; font-weight: 700; padding: 18px; border-radius: 20px; border: none; cursor: pointer; width: 100%; }
+  .link { color: var(--t3); font-size: 12px; margin-top: 15px; cursor: pointer; display: block; }
 
   #app-screen { display: none; width: 100%; height: 100vh; }
-  .sidebar { width: 350px; border-right: 1px solid var(--bd); background: var(--s1); display: flex; flex-direction: column; }
-  .chat-area { flex: 1; display: flex; flex-direction: column; background: #080808; }
+  .sidebar { width: 350px; border-right: 1px solid var(--bd); background: var(--s1); display: flex; flex-direction: column; transition: 0.4s; }
+  .chat-area { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
 
   #settings { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 3000; display: none; overflow-y: auto; padding: 20px; }
   .set-container { max-width: 400px; margin: 40px auto; width: 100%; }
-  
-  .av-edit { width: 100px; height: 100px; border-radius: 50%; background: #222; margin: 0 auto 20px; position: relative; overflow: hidden; cursor: pointer; border: 2px dashed var(--bd); }
+  .av-edit { width: 110px; height: 110px; border-radius: 50%; background: #222; margin: 0 auto 25px; position: relative; overflow: hidden; cursor: pointer; border: 1px solid var(--bd); }
   .av-edit img { width: 100%; height: 100%; object-fit: cover; }
 
+  .bubble { max-width: 75%; padding: 14px 18px; border-radius: 22px; font-size: 14px; margin-bottom: 4px; line-height: 1.4; }
+  .bubble.me { align-self: flex-end; background: var(--acc); color: #000; border-bottom-right-radius: 4px; }
+  .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 4px; }
+  
   .hidden { display: none !important; }
-  .mobile-hide { transform: translateX(-100%); }
+  @media (max-width: 768px) { .sidebar { width: 100%; position: absolute; left: 0; top: 0; height: 100%; z-index: 10; } .sidebar.mobile-hide { transform: translateX(-100%); } }
 </style>
 </head>
 <body>
@@ -36,9 +39,30 @@
 <div id="auth-screen">
   <div class="auth-card">
     <h1 style="margin-bottom:25px; letter-spacing:-2px">Hate Me</h1>
-    <input type="email" id="email" class="input-box" placeholder="Email">
-    <input type="password" id="pass" class="input-box" placeholder="Password">
-    <button class="btn-p" id="login-btn">Connect</button>
+    
+    <div id="step-email">
+      <input type="email" id="reg-email" class="input-box" placeholder="Email">
+      <button class="btn-p" id="send-code-btn">Send Code</button>
+      <span class="link" id="go-login">Login</span>
+    </div>
+
+    <div id="step-code" class="hidden">
+      <input type="text" id="verify-code" class="input-box" placeholder="6-digit code">
+      <button class="btn-p" id="verify-btn">Verify</button>
+    </div>
+
+    <div id="step-final" class="hidden">
+      <input type="text" id="reg-nick" class="input-box" placeholder="@username">
+      <input type="password" id="reg-pass" class="input-box" placeholder="Password">
+      <button class="btn-p" id="finish-reg-btn">Complete</button>
+    </div>
+
+    <div id="step-login" class="hidden">
+      <input type="email" id="login-email" class="input-box" placeholder="Email">
+      <input type="password" id="login-pass" class="input-box" placeholder="Password">
+      <button class="btn-p" id="login-btn">Connect</button>
+      <span class="link" id="go-reg">Sign Up</span>
+    </div>
   </div>
 </div>
 
@@ -47,7 +71,7 @@
     <div style="padding:30px 25px; display:flex; justify-content:space-between; align-items:center">
       <h2>Chats</h2>
       <div style="display:flex; gap:15px">
-        <i data-lucide="plus-square" id="create-grp" style="cursor:pointer; color:var(--t3)"></i>
+        <i data-lucide="plus-circle" id="create-btn" style="cursor:pointer; color:var(--t3)"></i>
         <i data-lucide="settings" id="open-set-btn" style="cursor:pointer; color:var(--t3)"></i>
       </div>
     </div>
@@ -57,7 +81,7 @@
 
   <main class="chat-area">
     <div id="header" style="padding:15px 25px; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:12px" class="hidden">
-      <i data-lucide="chevron-left" id="back-btn" style="cursor:pointer"></i>
+      <i data-lucide="chevron-left" id="close-chat" style="cursor:pointer"></i>
       <div id="c-nick" style="font-weight:700">@nick</div>
     </div>
     <div id="messages" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column"></div>
@@ -70,126 +94,141 @@
 
 <div id="settings">
   <div class="set-container">
-    <h1 style="margin-bottom:30px">Profile Settings</h1>
-    
+    <h1 style="margin-bottom:30px">Profile</h1>
     <div class="av-edit" id="av-trigger">
         <img id="set-av-img" src="">
         <input type="file" id="file-input" hidden accept="image/*">
-        <div style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; font-size:10px">Edit</div>
     </div>
-
-    <label style="color:var(--t3); font-size:12px">Username</label>
+    <label style="color:var(--t3); font-size:12px; margin-left:10px">Username</label>
     <input type="text" id="set-n" class="input-box" placeholder="@nick">
-    
-    <label style="color:var(--t3); font-size:12px">About</label>
-    <textarea id="set-desc" class="input-box" rows="2" placeholder="Tell something..."></textarea>
-    
-    <label style="color:var(--t3); font-size:12px">Device Status</label>
-    <div id="set-dev" style="background:var(--s1); padding:15px; border-radius:15px; font-size:12px; margin-bottom:20px; color:var(--on)">Active Device: PC / Web Portal</div>
-
+    <label style="color:var(--t3); font-size:12px; margin-left:10px">About</label>
+    <textarea id="set-desc" class="input-box" rows="3" placeholder="Description"></textarea>
+    <div style="background:var(--s1); padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid var(--bd)">
+      <p style="font-size:12px; color:var(--t3); margin-bottom:5px">Device Status</p>
+      <p style="font-weight:700; color:var(--on)">Active: PC-STABLE-V2</p>
+    </div>
     <button class="btn-p" id="save-set-btn">Save Changes</button>
-    <button id="close-set-btn" style="background:none; color:var(--t3); border:none; margin-top:20px; cursor:pointer; width:100%">Cancel</button>
+    <button id="close-set-btn" class="link" style="width:100%; border:none; background:none">Cancel</button>
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
   const cfg = { apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU", authDomain: "hate-24365.firebaseapp.com", projectId: "hate-24365", storageBucket: "hate-24365.firebasestorage.app", appId: "1:990484802574:web:56e00d91e1e58df144a05f" };
   const app = initializeApp(cfg);
   const db = getFirestore(app);
-  let _me = null, _to = null, _sub = null, _base64Av = "";
+  const API = "https://server-roan-omega.vercel.app";
+
+  let _me = null, _to = null, _sub = null, _code = null, _tempMail = "", _av = "";
 
   lucide.createIcons();
 
-  // LOGIN
-  document.getElementById('login-btn').onclick = async () => {
-    const m = document.getElementById('email').value.trim().toLowerCase();
-    const p = document.getElementById('pass').value;
-    const s = await getDoc(doc(db, "users", m));
-    if(s.exists() && s.data().password === p) {
-      _me = { ...s.data(), email: m };
-      document.getElementById('auth-screen').classList.add('hidden');
-      document.getElementById('app-screen').style.display = 'flex';
-      _base64Av = _me.av || "";
-      document.getElementById('set-av-img').src = _base64Av;
-    }
+  document.getElementById('send-code-btn').onclick = async () => {
+    _tempMail = document.getElementById('reg-email').value.trim().toLowerCase();
+    if(!_tempMail) return;
+    _code = Math.floor(100000 + Math.random() * 900000).toString();
+    try {
+      await fetch(`${API}/api/send-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: _tempMail, code: _code })
+      });
+      document.getElementById('step-email').classList.add('hidden');
+      document.getElementById('step-code').classList.remove('hidden');
+    } catch(e) { alert("Server Error"); }
   };
 
-  // AVATAR FROM PC
+  document.getElementById('verify-btn').onclick = () => {
+    if(document.getElementById('verify-code').value.trim() === _code) {
+      document.getElementById('step-code').classList.add('hidden');
+      document.getElementById('step-final').classList.remove('hidden');
+    } else alert("Invalid Code");
+  };
+
+  document.getElementById('finish-reg-btn').onclick = async () => {
+    const n = document.getElementById('reg-nick').value.trim().toLowerCase();
+    const p = document.getElementById('reg-pass').value;
+    if(!n || !p) return;
+    await setDoc(doc(db, "users", _tempMail), { nick: n, password: p, email: _tempMail, av: "", desc: "", devices: ["PC-WEB"] });
+    alert("Registered successfully!");
+    location.reload();
+  };
+
+  document.getElementById('login-btn').onclick = async () => {
+    const e = document.getElementById('login-email').value.trim().toLowerCase();
+    const p = document.getElementById('login-pass').value;
+    const s = await getDoc(doc(db, "users", e));
+    if(s.exists() && s.data().password === p) {
+      _me = { ...s.data(), email: e };
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'flex';
+      _av = _me.av;
+    } else alert("Auth failed");
+  };
+
   document.getElementById('av-trigger').onclick = () => document.getElementById('file-input').click();
   document.getElementById('file-input').onchange = (e) => {
     const reader = new FileReader();
-    reader.onload = () => {
-        _base64Av = reader.result;
-        document.getElementById('set-av-img').src = _base64Av;
-    };
+    reader.onload = () => { _av = reader.result; document.getElementById('set-av-img').src = _av; };
     reader.readAsDataURL(e.target.files[0]);
   };
 
-  // SETTINGS
-  document.getElementById('open-set-btn').onclick = () => {
-    document.getElementById('set-n').value = _me.nick;
-    document.getElementById('set-desc').value = _me.desc || "";
-    document.getElementById('settings').style.display = 'block';
-  };
-  
   document.getElementById('save-set-btn').onclick = async () => {
     const n = document.getElementById('set-n').value.trim();
     const d = document.getElementById('set-desc').value.trim();
-    await updateDoc(doc(db, "users", _me.email), { nick: n, desc: d, av: _base64Av });
-    _me.nick = n; _me.desc = d; _me.av = _base64Av;
-    alert("Saved!");
+    await updateDoc(doc(db, "users", _me.email), { nick: n, desc: d, av: _av });
+    _me.nick = n; _me.desc = d; _me.av = _av;
+    alert("Profile Updated");
     document.getElementById('settings').style.display = 'none';
   };
 
-  document.getElementById('close-set-btn').onclick = () => document.getElementById('settings').style.display = 'none';
-
-  // ГРУППЫ (ЗАГЛУШКА)
-  document.getElementById('create-grp').onclick = () => {
-      const gName = prompt("Enter Channel/Group Name:");
-      if(gName) alert("Group " + gName + " created (logic pending)");
+  document.getElementById('open-set-btn').onclick = () => {
+    document.getElementById('set-n').value = _me.nick;
+    document.getElementById('set-desc').value = _me.desc || "";
+    document.getElementById('set-av-img').src = _me.av || "";
+    document.getElementById('settings').style.display = 'block';
   };
 
-  // ... (остальной функционал поиска и чата остается рабочим) ...
-  document.getElementById('find').addEventListener('keypress', async (e) => {
+  document.getElementById('close-set-btn').onclick = () => document.getElementById('settings').style.display = 'none';
+  document.getElementById('go-login').onclick = () => { document.getElementById('step-email').classList.add('hidden'); document.getElementById('step-login').classList.remove('hidden'); };
+  document.getElementById('go-reg').onclick = () => { document.getElementById('step-login').classList.add('hidden'); document.getElementById('step-email').classList.remove('hidden'); };
+
+  document.getElementById('find').onkeypress = async (e) => {
     if(e.key === 'Enter') {
-      const v = e.target.value.replace('@','').toLowerCase();
+      const v = e.target.value.replace('@','').trim().toLowerCase();
       const q = query(collection(db, "users"), where("nick", "==", v));
       const s = await getDocs(q);
-      const list = document.getElementById('contacts');
-      list.innerHTML = "";
+      const list = document.getElementById('contacts'); list.innerHTML = "";
       s.forEach(d => {
-        const u = d.data();
         if(d.id === _me.email) return;
+        const u = d.data();
         const div = document.createElement('div');
-        div.style = "padding:15px 20px; cursor:pointer; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:10px";
-        div.innerHTML = `<img src="${u.av||''}" style="width:30px;height:30px;border-radius:50%;background:#222"><b>@${u.nick}</b>`;
-        div.onclick = () => openChat(u, d.id);
+        div.style = "padding:18px 25px; cursor:pointer; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:12px";
+        div.innerHTML = `<img src="${u.av || ''}" style="width:35px;height:35px;border-radius:50%;background:#222;object-fit:cover"><div><div style="font-weight:700">@${u.nick}</div><div style="font-size:10px;color:var(--t3)">${u.desc || ''}</div></div>`;
+        div.onclick = () => {
+          _to = { ...u, email: d.id };
+          document.getElementById('header').classList.remove('hidden');
+          document.getElementById('input-ui').classList.remove('hidden');
+          document.getElementById('c-nick').innerText = "@"+_to.nick;
+          if(window.innerWidth < 768) document.getElementById('side-ui').classList.add('mobile-hide');
+          load();
+        };
         list.appendChild(div);
       });
     }
-  });
+  };
 
-  function openChat(user, email) {
-    _to = { ...user, email: email };
-    document.getElementById('header').classList.remove('hidden');
-    document.getElementById('input-ui').classList.remove('hidden');
-    document.getElementById('c-nick').innerText = "@" + user.nick;
-    loadMessages();
-  }
-
-  function loadMessages() {
+  function load() {
     if(_sub) _sub();
     const id = [_me.email, _to.email].sort().join('_');
     _sub = onSnapshot(collection(db, "chats", id, "messages"), (s) => {
-      const box = document.getElementById('messages');
-      box.innerHTML = "";
+      const box = document.getElementById('messages'); box.innerHTML = "";
       let ms = []; s.forEach(d => ms.push(d.data()));
-      ms.sort((a,b) => a.time - b.time).forEach(m => {
+      ms.sort((a,b)=>a.time-b.time).forEach(m => {
         const d = document.createElement('div');
-        d.className = `bubble ${m.from === _me.email ? 'me' : 'to'}`;
+        d.className = `bubble ${m.from===_me.email?'me':'to'}`;
         d.innerText = m.text;
         box.appendChild(d);
       });
@@ -201,9 +240,12 @@
     const t = document.getElementById('msg-t');
     if(!t.value.trim()) return;
     const id = [_me.email, _to.email].sort().join('_');
-    await addDoc(collection(db, "chats", id, "messages"), { from: _me.email, text: t.value, time: Date.now() });
+    await addDoc(collection(db, "chats", id, "messages"), { from:_me.email, text: t.value, time: Date.now() });
     t.value = "";
   };
+
+  document.getElementById('close-chat').onclick = () => document.getElementById('side-ui').classList.remove('mobile-hide');
+  document.getElementById('create-btn').onclick = () => alert("Group creation coming soon");
 </script>
 </body>
 </html>
