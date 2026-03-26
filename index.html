@@ -1,62 +1,130 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, onSnapshot, addDoc, updateDoc, arrayUnion, orderBy } from "firebase/firestore";
-
-// Данные теперь подтягиваются из настроек Vercel, а не лежат в открытом виде
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Основная логика входа и регистрации
-export async function doAuth(email, pass, mode) {
-    try {
-        const userRef = doc(db, "users", email.toLowerCase());
-        const userDoc = await getDoc(userRef);
-
-        if (mode === 'login') {
-            if (userDoc.exists() && userDoc.data().password === pass) {
-                return { success: true, user: { ...userDoc.data(), email } };
-            }
-            throw new Error("Неверный логин или пароль");
-        } else {
-            if (userDoc.exists()) throw new Error("Пользователь уже существует");
-            
-            // Создаем профиль с дефолтными данными
-            const newUser = { 
-                name: "User", 
-                nick: email.split('@')[0], 
-                bio: "hate hate hate...", 
-                password: pass, 
-                myChats: [], 
-                av: "" 
-            };
-            await setDoc(userRef, newUser);
-            return { success: true, user: { ...newUser, email } };
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hate Me</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #030303; --card: #0a0a0a; --t1: #ffffff; --t3: #555; 
+            --acc: #ffffff; --bd: rgba(255,255,255,0.08); --blur: blur(25px);
         }
-    } catch (e) {
-        // Если в консоли Firebase не настроены Rules, будет ошибка прав
-        console.error("Auth Error:", e.message);
-        throw e;
-    }
-}
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body { background: var(--bg); color: var(--t1); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
 
-// Отправка сообщения в Firestore
-export async function sendMsg(meEmail, toEmail, text) {
-    const chatID = [meEmail, toEmail].sort().join('_');
-    
-    // Обновляем список чатов у обоих
-    await updateDoc(doc(db, "users", meEmail), { myChats: arrayUnion({id: toEmail}) });
-    await updateDoc(doc(db, "users", toEmail), { myChats: arrayUnion({id: meEmail}) });
+        /* Экраны */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #app-screen { display: none; width: 100%; height: 100%; }
 
-    await addDoc(collection(db, `chats/${chatID}/messages`), {
-        from: meEmail,
-        text: text,
-        time: Date.now()
-    });
-}
+        .auth-box { width: min(90%, 380px); background: var(--card); border-radius: 30px; border: 1px solid var(--bd); padding: 30px; }
+        .input-box { width: 100%; background: #e8f0fe; border: none; padding: 16px; border-radius: 15px; color: #000; font-size: 14px; margin-bottom: 15px; }
+        .btn-p { width: 100%; padding: 18px; border-radius: 15px; border: none; background: #fff; color: #000; font-weight: 700; cursor: pointer; }
+
+        /* Профиль (как на твоем скрине) */
+        .profile-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 40px 20px; z-index: 1000; }
+        .av-box { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin-bottom: 30px; border: 2px solid var(--bd); }
+        .av-box img { width: 100%; height: 100%; object-fit: cover; }
+        .field-label { font-size: 12px; color: var(--t3); align-self: flex-start; margin: 10px 0 5px 15%; }
+        .field-val { width: 70%; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--bd); margin-bottom: 10px; }
+        
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 12px 24px; border-radius: 12px; display: none; z-index: 5000; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="toast"></div>
+
+    <div id="auth-screen">
+        <h1 style="margin-bottom: 30px; font-size: 32px;">Hate Me</h1>
+        <div class="auth-box">
+            <input type="email" id="email" class="input-box" placeholder="grigoevstas380@gmail.com">
+            <input type="password" id="pass" class="input-box" placeholder="••••••••••••">
+            <button class="btn-p" id="login-btn">Войти</button>
+            <button class="btn-p" id="reg-btn" style="background: none; color: #fff; margin-top: 10px;">Регистрация</button>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        <div class="profile-overlay">
+            <h2 style="margin-bottom: 40px;">Профиль</h2>
+            <div class="av-box"><img id="my-av" src="https://via.placeholder.com/150"></div>
+            
+            <div class="field-label">Имя:</div>
+            <div class="field-val" id="disp-name">x</div>
+            
+            <div class="field-label">Ник:</div>
+            <div class="field-val" id="disp-nick">@imbowii</div>
+            
+            <button class="btn-p" onclick="location.reload()" style="background: rgba(255,0,0,0.1); color: #ff4d4d; width: 70%; margin-top: 30px;">Выход</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Если ты используешь чистый HTML на Vercel без Vite, 
+        // тебе нужно заменить эти process.env на реальные значения из image_416f3c.png 
+        // Либо настроить сборку проекта.
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-PLDvaLnzoJWTWJb17U4FJU0ziQfL0eU",
+            authDomain: "hate-24365.firebaseapp.com",
+            projectId: "hate-24365",
+            storageBucket: "hate-24365.firebasestorage.app",
+            appId: "1:990484802574:web:56e00d91e1e58df144a05f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const notify = (msg) => {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        };
+
+        async function handleAuth(mode) {
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const pass = document.getElementById('pass').value;
+
+            if(!email || !pass) return notify("Заполни поля");
+
+            try {
+                const userRef = doc(db, "users", email);
+                const userSnap = await getDoc(userRef);
+
+                if(mode === 'login') {
+                    if(userSnap.exists() && userSnap.data().password === pass) {
+                        showApp(userSnap.data());
+                    } else {
+                        notify("Ошибка входа");
+                    }
+                } else {
+                    if(userSnap.exists()) return notify("Уже есть такой");
+                    const newUser = { name: "x", nick: "imbowii", password: pass, av: "" };
+                    await setDoc(userRef, newUser);
+                    showApp(newUser);
+                }
+            } catch (e) {
+                console.error(e);
+                notify("Ошибка базы. Проверь Rules!");
+            }
+        }
+
+        function showApp(user) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'flex';
+            document.getElementById('disp-name').innerText = user.name;
+            document.getElementById('disp-nick').innerText = "@" + user.nick;
+            if(user.av) document.getElementById('my-av').src = user.av;
+        }
+
+        document.getElementById('login-btn').onclick = () => handleAuth('login');
+        document.getElementById('reg-btn').onclick = () => handleAuth('reg');
+        
+        lucide.createIcons();
+    </script>
+</body>
+</html>
