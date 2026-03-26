@@ -17,7 +17,6 @@
     height: 100dvh; overflow: hidden; display: flex;
   }
 
-  @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
   #toast { 
@@ -48,13 +47,16 @@
   .contact-item { padding: 18px 25px; display: flex; align-items: center; gap: 15px; cursor: pointer; border-bottom: 1px solid var(--bd); }
   .contact-item:hover { background: rgba(255,255,255,0.02); }
   
+  .av-main { width: 45px; height: 45px; border-radius: 50%; background: #222; overflow: hidden; object-fit: cover; flex-shrink: 0; }
+  .av-chat { width: 40px; height: 40px; border-radius: 50%; background: #222; overflow: hidden; object-fit: cover; }
+
   .bubble { max-width: 80%; padding: 14px 18px; border-radius: 20px; font-size: 14px; margin-bottom: 6px; }
   .bubble.me { align-self: flex-end; background: #fff; color: #000; border-bottom-right-radius: 4px; }
   .bubble.to { align-self: flex-start; background: var(--s2); color: #fff; border-bottom-left-radius: 4px; }
 
-  /* NEW SETTINGS DESIGN */
+  /* SETTINGS */
   #settings-panel { 
-    position: fixed; inset: 0; background: rgba(5,5,5,0.9); backdrop-filter: var(--blur); 
+    position: fixed; inset: 0; background: rgba(5,5,5,0.92); backdrop-filter: var(--blur); 
     z-index: 4000; display: none; flex-direction: column; align-items: center; padding: 40px 20px;
     animation: fade 0.3s ease; overflow-y: auto;
   }
@@ -66,6 +68,12 @@
   }
   .set-card-content { flex: 1; }
   .set-card-label { font-size: 10px; color: var(--t3); text-transform: uppercase; margin-bottom: 4px; font-weight: 700; }
+  
+  .av-upload-box { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; cursor: pointer; }
+  .av-upload-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--bd); }
+  .av-upload-box .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+  .av-upload-box:hover .overlay { opacity: 1; }
+
   .device-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--bd); }
   .device-item:last-child { border: none; }
 
@@ -102,7 +110,7 @@
   <main class="chat-area">
     <div id="chat-header" class="hidden" style="padding:20px 30px; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:15px">
         <i data-lucide="chevron-left" class="pc-hide" onclick="closeChatMobile()" style="cursor:pointer"></i>
-        <div id="chat-av" style="width:40px; height:40px; border-radius:50%; background:#222"></div>
+        <img id="chat-av" class="av-chat" src="">
         <div>
             <div id="chat-title" style="font-weight:700">Имя</div>
             <div style="font-size:10px; color:var(--on)">Онлайн</div>
@@ -123,6 +131,12 @@
         <i data-lucide="x" onclick="toggleSettings()" style="cursor:pointer"></i>
     </div>
 
+    <div class="av-upload-box" onclick="document.getElementById('av-input').click()">
+        <img id="my-av-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
+        <div class="overlay"><i data-lucide="camera" style="color:#fff"></i></div>
+        <input type="file" id="av-input" hidden accept="image/*" onchange="uploadAv(this)">
+    </div>
+
     <div class="section-title">Основное</div>
     <div class="set-card" onclick="changeField('name')">
         <div class="set-card-content"><div class="set-card-label">Имя</div><span id="s-name">User</span></div>
@@ -136,8 +150,7 @@
     <div class="section-title">Конфиденциальность</div>
     <div class="set-card" style="display:block">
         <div class="set-card-label" style="margin-bottom:15px">Активные устройства</div>
-        <div id="device-list">
-            </div>
+        <div id="device-list"></div>
     </div>
 
     <button class="btn-p" onclick="logout()" style="margin-top:40px; background:rgba(255,0,0,0.1); color:#ff4d4d">Выйти из аккаунта</button>
@@ -153,37 +166,24 @@
   const db = getFirestore(app);
 
   let _me = null, _to = null, _code = "", _mode = 'login', _sub = null, _chatsSub = null;
-
   const notify = (t) => { const el = document.getElementById('toast'); el.innerText = t; el.style.display = 'block'; setTimeout(() => el.style.display='none', 3000); };
   const updateIcons = () => lucide.createIcons();
 
-  // ОПРЕДЕЛЕНИЕ УСТРОЙСТВА
   function getDeviceInfo() {
     const ua = navigator.userAgent;
-    let name = "Unknown Device";
-    let icon = "monitor";
-
+    let name = "Windows PC", icon = "monitor";
     if (/iPhone/.test(ua)) { name = "iPhone"; icon = "smartphone"; }
     else if (/Android/.test(ua)) { name = "Android Device"; icon = "smartphone"; }
-    else if (/Macintosh/.test(ua)) {
-        if (/MacBook/.test(ua)) name = "MacBook";
-        else if (/Mac mini/.test(ua)) name = "Mac mini";
-        else name = "Mac / iMac";
-        icon = "laptop";
-    }
-    else if (/Windows/.test(ua)) { name = "Windows PC"; icon = "monitor"; }
-
-    return { name, icon, id: Math.random().toString(36).substr(2, 9) };
+    else if (/Macintosh/.test(ua)) { name = "Mac / iMac"; icon = "laptop"; }
+    return { name, icon, id: Math.random().toString(36).substr(2, 6) };
   }
 
   window.onload = async () => {
     const saved = localStorage.getItem('hate_session');
     if(saved) {
         const data = JSON.parse(saved);
-        if(Date.now() - data.time < 7 * 24 * 60 * 60 * 1000) {
-            const s = await getDoc(doc(db, "users", data.email));
-            if(s.exists()) { _me = { ...s.data(), email: data.email }; enterApp(); }
-        }
+        const s = await getDoc(doc(db, "users", data.email));
+        if(s.exists()) { _me = { ...s.data(), email: data.email }; enterApp(); }
     }
   };
 
@@ -194,8 +194,8 @@
     if(_mode === 'login') {
       box.innerHTML = `<input type="email" id="l-email" class="input-box" placeholder="Email"><input type="password" id="l-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="doLogin()">Войти</button>`;
     } else {
-      if(step === 1) box.innerHTML = `<input type="email" id="r-email" class="input-box" placeholder="Твой Email"><button class="btn-p" onclick="sendCode()">Код</button>`;
-      else if(step === 2) box.innerHTML = `<input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="000000"><button class="btn-p" onclick="verify()">Ок</button>`;
+      if(step === 1) box.innerHTML = `<input type="email" id="r-email" class="input-box" placeholder="Email"><button class="btn-p" onclick="sendCode()">Код</button>`;
+      else if(step === 2) box.innerHTML = `<input type="text" id="r-code" class="input-box" style="text-align:center" placeholder="Код"><button class="btn-p" onclick="verify()">Ок</button>`;
       else box.innerHTML = `<input type="password" id="r-pass" class="input-box" placeholder="Пароль"><button class="btn-p" onclick="finishReg()">Готово</button>`;
     }
   }
@@ -212,8 +212,7 @@
 
   window.finishReg = async () => {
     const email = document.getElementById('r-email').value, pass = document.getElementById('r-pass').value;
-    const device = getDeviceInfo();
-    const user = { name: "User", nick: "", password: pass, devices: [device], myChats: [] };
+    const user = { name: "User", nick: "", password: pass, devices: [getDeviceInfo()], myChats: [], av: "" };
     await setDoc(doc(db, "users", email), user);
     _me = { ...user, email }; enterApp();
   };
@@ -223,8 +222,7 @@
     const s = await getDoc(doc(db, "users", m));
     if(s.exists() && s.data().password === p) {
         _me = { ...s.data(), email: m };
-        const currentDevice = getDeviceInfo();
-        await updateDoc(doc(db, "users", m), { devices: arrayUnion(currentDevice) });
+        await updateDoc(doc(db, "users", m), { devices: arrayUnion(getDeviceInfo()) });
         enterApp();
     } else notify("Ошибка входа");
   };
@@ -240,15 +238,40 @@
   function updateInfo() {
     document.getElementById('s-name').innerText = _me.name;
     document.getElementById('s-nick').innerText = _me.nick ? "@" + _me.nick : "не задан";
-    const devList = document.getElementById('device-list');
-    devList.innerHTML = "";
+    if(_me.av) document.getElementById('my-av-img').src = _me.av;
+    
+    const devList = document.getElementById('device-list'); devList.innerHTML = "";
     (_me.devices || []).forEach(d => {
-        devList.innerHTML += `<div class="device-item"><i data-lucide="${d.icon}"></i><div style="flex:1"><b>${d.name}</b><div style="font-size:10px;color:var(--t3)">Активен сейчас</div></div></div>`;
+        devList.innerHTML += `<div class="device-item"><i data-lucide="${d.icon}"></i><div style="flex:1"><b>${d.name}</b><div style="font-size:10px;color:var(--t3)">Активен</div></div></div>`;
     });
     updateIcons();
   }
 
-  // СПИСОК ЧАТОВ (АВТО-ОБНОВЛЕНИЕ)
+  // ЗАГРУЗКА АВАТАРКИ
+  window.uploadAv = (input) => {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+        const base64 = reader.result;
+        // Сжатие на скорую руку через Canvas (опционально, но лучше для БД)
+        const img = new Image();
+        img.src = base64;
+        img.onload = async () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 200; canvas.height = 200;
+            ctx.drawImage(img, 0, 0, 200, 200);
+            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+            await updateDoc(doc(db, "users", _me.email), { av: compressed });
+            _me.av = compressed;
+            updateInfo();
+            notify("Аватарка обновлена");
+        };
+    };
+    reader.readAsDataURL(file);
+  };
+
   function listenMyChats() {
     if(_chatsSub) _chatsSub();
     _chatsSub = onSnapshot(doc(db, "users", _me.email), (snap) => {
@@ -261,7 +284,8 @@
                 const u = uDoc.data();
                 const div = document.createElement('div');
                 div.className = "contact-item";
-                div.innerHTML = `<div style="width:45px;height:45px;border-radius:50%;background:#222"></div><div><b>${u.name}</b><div style="font-size:11px;color:var(--t3)">@${u.nick}</div></div>`;
+                const avImg = u.av || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+                div.innerHTML = `<img src="${avImg}" class="av-main"><div><b>${u.name}</b><div style="font-size:11px;color:var(--t3)">@${u.nick}</div></div>`;
                 div.onclick = () => openChat(u, chatEmail);
                 list.appendChild(div);
             }
@@ -277,7 +301,7 @@
   window.changeField = async (t) => {
     const val = prompt("Введите значение:"); if(!val) return;
     let up = {}; if(t === 'name') up.name = val;
-    else { const c = val.replace('@','').toLowerCase(); if(c.length < 5) return; up.nick = c; }
+    else { const c = val.replace('@','').toLowerCase().trim(); if(c.length < 5) return notify("Минимум 5 симв."); up.nick = c; }
     await updateDoc(doc(db, "users", _me.email), up);
     Object.assign(_me, up); updateInfo();
   };
@@ -297,6 +321,7 @@
     document.getElementById('chat-header').classList.remove('hidden');
     document.getElementById('input-bar').classList.remove('hidden');
     document.getElementById('chat-title').innerText = user.name;
+    document.getElementById('chat-av').src = user.av || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
     if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hide');
     loadMsgs();
   }
@@ -321,11 +346,8 @@
   window.sendMsg = async () => {
     const inp = document.getElementById('msg-input'); if(!inp.value.trim()) return;
     const id = [_me.email, _to.email].sort().join('_');
-    
-    // Добавляем чат в списки обоим при первом сообщении
     await updateDoc(doc(db, "users", _me.email), { myChats: arrayUnion(_to.email) });
     await updateDoc(doc(db, "users", _to.email), { myChats: arrayUnion(_me.email) });
-
     await addDoc(collection(db, "chats", id, "messages"), { from: _me.email, text: inp.value, time: Date.now() });
     inp.value = "";
   };
