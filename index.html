@@ -58,7 +58,6 @@
   #cf-turnstile { margin: 15px 0; display: flex; justify-content: center; }
   .rate-limit-info { font-size: 11px; color: var(--t3); text-align: center; margin-top: 10px; }
 </style>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -150,6 +149,8 @@
     <button class="btn-p" onclick="processCreate()">Создать</button>
   </div>
 </div>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
@@ -246,22 +247,21 @@
     } catch {}
   };
 
-  const verifyCF = async () => {
+  // ФИКС: Проверяем загрузку turnstile перед использованием
+  const waitForTurnstile = () => {
     return new Promise((resolve) => {
-      if (!_cfToken) {
-        turnstile.ready(() => {
-          turnstile.render('#cf-turnstile', {
-            sitekey: '0x4AAAAAAAyOurS1teKey',
-            callback: (token) => {
-              _cfToken = token;
-              resolve(true);
-            },
-            'error-callback': () => resolve(false)
-          });
-        });
-      } else {
-        resolve(true);
+      if (typeof turnstile !== 'undefined') {
+        resolve();
+        return;
       }
+      const check = () => {
+        if (typeof turnstile !== 'undefined') {
+          resolve();
+        } else {
+          setTimeout(check, 100);
+        }
+      };
+      check();
     });
   };
 
@@ -297,7 +297,8 @@
     renderAuth(); 
   };
   
-  function renderAuth(step = 1) {
+  // ФИКС: Асинхронная инициализация turnstile
+  async function renderAuth(step = 1) {
     const box = document.getElementById('auth-fields');
     if(_mode === 'login') {
       box.innerHTML = `
@@ -305,7 +306,7 @@
           <input type="email" id="l-email" class="input-box" placeholder="Email" autocomplete="email">
           <input type="password" id="l-pass" class="input-box" placeholder="Пароль" autocomplete="current-password">
           <div id="cf-turnstile"></div>
-          <button class="btn-p" onclick="doLogin()">Войти</button>
+          <button class="btn-p" id="login-btn" onclick="doLogin()">Войти</button>
           <div class="rate-limit-info">3 попытки входа за 5 минут</div>
         </div>`;
     } else {
@@ -314,7 +315,7 @@
           <div style="padding:25px">
             <input type="email" id="r-email" class="input-box" placeholder="Email" autocomplete="email">
             <div id="cf-turnstile"></div>
-            <button class="btn-p" onclick="sendCode()">Получить код</button>
+            <button class="btn-p" id="reg-btn" onclick="sendCode()">Получить код</button>
           </div>`;
       } else if(step === 2) {
         box.innerHTML = `
@@ -330,7 +331,18 @@
           </div>`;
       }
     }
-    if (step === 1) verifyCF();
+    
+    // ФИКС: Ждем загрузки turnstile перед рендером
+    if (step === 1) {
+      await waitForTurnstile();
+      turnstile.render('#cf-turnstile', {
+        sitekey: '0x4AAAAAAACw4qReGkxeJAVln', // ЗАМЕНИ НА СВОЙ
+        callback: (token) => { _cfToken = token; },
+        'error-callback': () => { notify('Ошибка капчи'); }
+      });
+    }
+    
+    updateIcons();
   }
   renderAuth();
 
@@ -338,6 +350,7 @@
 
   window.sendCode = async () => {
     if(!await NVS('login')) return;
+    if (!_cfToken) { notify('Пройдите проверку'); return; }
     
     const email = clean(document.getElementById('r-email').value);
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
@@ -401,6 +414,7 @@
   // ФИКС ВХОДА — поддержка старых и новых паролей
   window.doLogin = async () => {
     if(!await NVS('login')) return;
+    if (!_cfToken) { notify('Пройдите проверку'); return; }
     
     const m = clean(document.getElementById('l-email').value);
     const p = document.getElementById('l-pass').value;
